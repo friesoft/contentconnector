@@ -33,8 +33,8 @@ class WarmingIndexAccessor extends DefaultIndexAccessor {
 	 * @param analyzer
 	 * @param warmQuery
 	 */
-	public WarmingIndexAccessor(Directory dir, Analyzer analyzer, Query warmQuery) {
-		super(dir, analyzer);
+	public WarmingIndexAccessor(final Directory dir, final Analyzer analyzer, final Query warmQuery) {
+		super(dir, analyzer, null);
 
 		this.warmQuery = warmQuery;
 		retiredSearchers = new ArrayList<IndexSearcher>();
@@ -44,6 +44,7 @@ class WarmingIndexAccessor extends DefaultIndexAccessor {
 	 * (non-Javadoc)
 	 * @see com.mhs.indexaccessor.IndexAccessor#close()
 	 */
+	@Override
 	public synchronized void close() {
 
 		if (closed) {
@@ -153,12 +154,13 @@ class WarmingIndexAccessor extends DefaultIndexAccessor {
 		 * @param oldSearcher
 		 * @param searcher
 		 */
-		public SearcherWarmer(IndexSearcher oldSearcher, IndexSearcher searcher) {
+		public SearcherWarmer(final IndexSearcher oldSearcher, final IndexSearcher searcher) {
 			this.searcher = searcher;
 			this.oldSearcher = oldSearcher;
 
 		}
 
+		@Override
 		public void run() {
 			LOGGER.debug("warming up searcher...");
 			try {
@@ -172,19 +174,19 @@ class WarmingIndexAccessor extends DefaultIndexAccessor {
 					}
 
 					@Override
-					public void collect(int arg0) throws IOException {
+					public void collect(final int arg0) throws IOException {
 						// TODO Auto-generated method stub
 
 					}
 
 					@Override
-					public void setNextReader(IndexReader arg0, int arg1) throws IOException {
+					public void setNextReader(final IndexReader arg0, final int arg1) throws IOException {
 						// TODO Auto-generated method stub
 
 					}
 
 					@Override
-					public void setScorer(Scorer arg0) throws IOException {
+					public void setScorer(final Scorer arg0) throws IOException {
 						// TODO Auto-generated method stub
 
 					}

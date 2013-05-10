@@ -31,6 +31,8 @@ import org.apache.lucene.search.Sort;
 import org.apache.lucene.store.AlreadyClosedException;
 import org.apache.lucene.store.Directory;
 
+import com.gentics.cr.CRConfig;
+
 /**
  * An IndexAccessorFactory allows the sharing of IndexAccessors and
  * MultiIndexAccessors across threads.
@@ -131,20 +133,24 @@ public class IndexAccessorFactory {
 	}
 
 	public void createAccessor(final Directory dir, final Analyzer analyzer) throws IOException {
-		createAccessor(dir, analyzer, null, null);
+		createAccessor(dir, analyzer, null, null, null);
+	}
+	public void createAccessor(final Directory dir, final Analyzer analyzer, final CRConfig config) throws IOException {
+		createAccessor(dir, analyzer, null, null, config);
 	}
 
 	public void createAccessor(final Directory dir, final Analyzer analyzer, final Query query) throws IOException {
-		createAccessor(dir, analyzer, query, null);
+		createAccessor(dir, analyzer, query, null, null);
 	};
 
-	private void createAccessor(final Directory dir, final Analyzer analyzer, final Query query, final Set<Sort> sortFields)
+	private void createAccessor(final Directory dir, final Analyzer analyzer, final Query query, final Set<Sort> sortFields,
+			final CRConfig config)
 			throws IOException {
 		IndexAccessor accessor = null;
 		if (query != null) {
 			accessor = new WarmingIndexAccessor(dir, analyzer, query);
 		} else {
-			accessor = new DefaultIndexAccessor(dir, analyzer);
+			accessor = new DefaultIndexAccessor(dir, analyzer, config);
 		}
 		accessor.open();
 

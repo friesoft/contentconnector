@@ -63,7 +63,7 @@ public class LuceneMultiIndexLocation extends LuceneIndexLocation {
 		IndexAccessorFactory factory = IndexAccessorFactory.getInstance();
 		if (!factory.hasAccessor(dir)) {
 			try {
-				factory.createAccessor(dir, getConfiguredAnalyzer());
+				factory.createAccessor(dir, getConfiguredAnalyzer(), config);
 			} catch (IOException ex) {
 				log.fatal("COULD NOT CREATE INDEX ACCESSOR" + ex.getMessage());
 			}
@@ -129,7 +129,7 @@ public class LuceneMultiIndexLocation extends LuceneIndexLocation {
 	}
 
 	@Override
-	public boolean reopenCheck(IndexAccessor indexAccessor, TaxonomyAccessor taxonomyAccessor) {
+	public boolean reopenCheck(final IndexAccessor indexAccessor, final TaxonomyAccessor taxonomyAccessor) {
 		boolean reopened = false;
 		if (reopencheck) {
 			try {

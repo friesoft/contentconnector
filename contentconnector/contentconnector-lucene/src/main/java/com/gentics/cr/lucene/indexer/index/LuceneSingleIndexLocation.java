@@ -52,7 +52,7 @@ public class LuceneSingleIndexLocation extends LuceneIndexLocation implements Ta
 		IndexAccessorFactory iAFactory = IndexAccessorFactory.getInstance();
 		if (!iAFactory.hasAccessor(dir)) {
 			try {
-				iAFactory.createAccessor(dir, getConfiguredAnalyzer());
+				iAFactory.createAccessor(dir, getConfiguredAnalyzer(), config);
 			} catch (IOException ex) {
 				log.fatal("COULD NOT CREATE INDEX ACCESSOR" + ex.getMessage());
 			}
@@ -149,6 +149,7 @@ public class LuceneSingleIndexLocation extends LuceneIndexLocation implements Ta
 	/**
 	 * Creates the reopen file to make portlet reload the index.
 	 */
+	@Override
 	public final void createReopenFile() {
 		boolean writeReopenFile = config.getBoolean("writereopenfile");
 		if (writeReopenFile) {
@@ -166,6 +167,7 @@ public class LuceneSingleIndexLocation extends LuceneIndexLocation implements Ta
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public final boolean reopenCheck(final IndexAccessor indexAccessor, final TaxonomyAccessor taxonomyAccessor) {
 		boolean reopened = false;
 		if (reopencheck) {
@@ -233,6 +235,7 @@ public class LuceneSingleIndexLocation extends LuceneIndexLocation implements Ta
 	 * Checks if the index is optimized.
 	 * @return true if it is optimized
 	 */
+	@Override
 	public final boolean isOptimized() {
 		boolean ret = false;
 		IndexAccessor indexAccessor = this.getAccessor();
@@ -282,7 +285,7 @@ public class LuceneSingleIndexLocation extends LuceneIndexLocation implements Ta
 	 * @param config
 	 * @return
 	 */
-	protected static String retrieveTaxonomyLocation(CRConfig config) {
+	protected static String retrieveTaxonomyLocation(final CRConfig config) {
 		String path = config.getString(FACET_CONFIG_KEY.concat(".").concat(FACET_CONFIG_PATH_KEY));
 		return path;
 	}
@@ -292,6 +295,7 @@ public class LuceneSingleIndexLocation extends LuceneIndexLocation implements Ta
 	 * 
 	 * @return
 	 */
+	@Override
 	public boolean useFacets() {
 		return useFacets;
 	}
