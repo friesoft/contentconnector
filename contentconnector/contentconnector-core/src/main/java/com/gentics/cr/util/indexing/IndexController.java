@@ -31,7 +31,7 @@ public class IndexController {
 	 * Configuration key.
 	 */
 	private static final String INDEX_KEY = "index";
-	
+
 	private static final ConcurrentHashMap<String, IndexController> controllers = new ConcurrentHashMap<String, IndexController>(1);
 
 	/**
@@ -92,8 +92,8 @@ public class IndexController {
 
 			for (Entry<String, GenericConfiguration> e : configs.entrySet()) {
 				String indexLocationName = e.getKey();
-				IndexLocation indexLocation = IndexLocation.getIndexLocation(new CRConfigUtil(e.getValue(), INDEX_KEY
-						+ "." + indexLocationName));
+				IndexLocation indexLocation = IndexLocation.getIndexLocation(new CRConfigUtil(e.getValue(), INDEX_KEY + "."
+						+ indexLocationName));
 				if (indexLocation == null) {
 					LOGGER.error("Cannot get index location for " + indexLocationName);
 				} else {
@@ -131,17 +131,16 @@ public class IndexController {
 		}
 		return ic;
 	}
-	
+
 	/**
 	 * Creates a new instance of indexController.
 	 * @param name name of the indexController
 	 * @return index controller.
 	 */
-	private static synchronized IndexController
-		createNewIndexController(final String name) {
+	private static synchronized IndexController createNewIndexController(final String name) {
 		IndexController ic = controllers.get(name);
 		if (ic == null) {
-			IndexController newIC = new IndexController(name); 
+			IndexController newIC = new IndexController(name);
 			ic = controllers.putIfAbsent(name, newIC);
 			if (ic == null) {
 				ic = newIC;

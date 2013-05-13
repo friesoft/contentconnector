@@ -2,9 +2,9 @@ package com.gentics.cr.lucene;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -17,6 +17,7 @@ import org.apache.log4j.Logger;
 import com.gentics.cr.CRConfigUtil;
 import com.gentics.cr.util.indexing.AbstractUpdateCheckerJob;
 import com.gentics.cr.util.indexing.IndexController;
+import com.gentics.cr.util.indexing.IndexControllerSingleton;
 import com.gentics.cr.util.indexing.IndexJobQueue;
 import com.gentics.cr.util.indexing.IndexLocation;
 
@@ -119,11 +120,11 @@ public class IndexJobNagiosServlet extends HttpServlet {
 	protected String getAction(HttpServletRequest request) {
 		return request.getParameter("action");
 	}
-	
+
 	private class ResponseWriter {
 
 		PrintWriter writer;
-		
+
 		public ResponseWriter(PrintWriter writer) {
 			this.writer = writer;
 		}
@@ -133,7 +134,7 @@ public class IndexJobNagiosServlet extends HttpServlet {
 				writer.write(value);
 			}
 		}
-		
+
 	}
 
 }

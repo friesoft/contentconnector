@@ -696,7 +696,7 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 				try {
 					newDoc.setBoost(Float.parseFloat(boostingValue));
 				} catch (Exception e) {
-					LOG.error("Could not pars boosting information " + "from resolvable.", e);
+					LOG.error("Could not parse boosting information " + "from resolvable.", e);
 				}
 			}
 		}

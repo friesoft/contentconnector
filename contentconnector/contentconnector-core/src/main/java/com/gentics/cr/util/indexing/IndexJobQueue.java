@@ -1,6 +1,7 @@
 package com.gentics.cr.util.indexing;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.log4j.Logger;
@@ -97,6 +98,8 @@ public class IndexJobQueue {
 	 */
 	private Object pauseMonitor = new Object();
 
+	protected List<IAfterActionTask> afterActionTasks;
+
 	/**
 	 * Create new instance of JobQueue.
 	 * @param config configuration of the job queue
@@ -110,7 +113,7 @@ public class IndexJobQueue {
 		lastJobs = new ArrayList<AbstractUpdateCheckerJob>(lastJobsSize);
 		indexJobQueueWorkerDaemon = new Thread(new Runnable() {
 			public void run() {
-				workQueue();
+				workQueue(config);
 			}
 		});
 		indexJobQueueWorkerDaemon.setName("IndexJobQueueWorker-" + config.getName());
@@ -162,7 +165,7 @@ public class IndexJobQueue {
 	/**
 	 * Check the queue for new jobs each <interval> seconds.
 	 */
-	private void workQueue() {
+	private void workQueue(final CRConfig config) {
 		boolean interrupted = false;
 
 		while (!interrupted && !stop) {
@@ -187,6 +190,13 @@ public class IndexJobQueue {
 						addToLastJobs(j);
 						currentJob = null;
 						currentJI = null;
+					}
+
+					afterActionTasks = AbstractAfterActionTask.getTaskList(config);
+					if (afterActionTasks != null) {
+						for (IAfterActionTask afterActionTask : afterActionTasks) {
+							afterActionTask.execute(config);
+						}
 					}
 					LOGGER.debug("Finished Job - " + j.getIdentifyer());
 				}
