@@ -146,6 +146,10 @@ public class LuceneSingleIndexLocation extends LuceneIndexLocation implements Ta
 		return this.indexLocation + "/" + REOPEN_FILENAME;
 	}
 
+	public String getIndexLocation() {
+		return this.indexLocation;
+	}
+
 	/**
 	 * Returns the path of the index location.
      * @return path of the index location
