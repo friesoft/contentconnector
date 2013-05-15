@@ -33,6 +33,8 @@ public class CRQueryParser extends QueryParser {
 	 * Constant 3.
 	 */
 	private static final int THREE = 3;
+	
+	private static final String SPEZIAL_CHARACTERS = ",-\\/";
 
 	/**
 	 * attributes to search in.
@@ -98,7 +100,6 @@ public class CRQueryParser extends QueryParser {
 	 * @return query with replaced special characters
 	 */
 	protected String replaceSpecialCharactersFromQuery(String crQuery) {
-		final String specialCharacters = "-\\/";
 		StringBuffer newQuery = new StringBuffer();
 		Matcher valueMatcher = getValueMatcher(crQuery);
 		while (valueMatcher.find()) {
@@ -108,17 +109,25 @@ public class CRQueryParser extends QueryParser {
 			String charsAfterValue = valueMatcher.group(THREE);
 			if (!"AND".equalsIgnoreCase(valueWithAttribute) && !"OR".equalsIgnoreCase(valueWithAttribute)
 					&& !"NOT".equalsIgnoreCase(valueWithAttribute) && attributesToSearchIn.contains(attribute)) {
-				if (!valueWithAttribute.matches("[^:]+:\"[^\"]+\"") && valueWithAttribute.matches(".*[" + specialCharacters + "].*")) {
-					String replacement = Matcher.quoteReplacement(charsBeforeValue
-							+ "("
-							+ valueWithAttribute.replaceAll("\\\\?[" + specialCharacters + "]([^" + specialCharacters + "]+)", " +"
-									+ attribute + ":$1") + ")" + charsAfterValue);
-					valueMatcher.appendReplacement(newQuery, replacement);
+				if (!valueWithAttribute.matches("[^:]+:\"[^\"]+\"") && valueWithAttribute.matches(".*[" + SPEZIAL_CHARACTERS + "].*")) {
+					String replacement = replaceSpecialCharactersInAttribute(charsBeforeValue, valueWithAttribute, attribute, charsAfterValue);
+					valueMatcher.appendReplacement(newQuery, Matcher.quoteReplacement(replacement));
 				}
 			}
 		}
 		valueMatcher.appendTail(newQuery);
 		return newQuery.toString();
+	}
+
+	protected String replaceSpecialCharactersInAttribute(final String charsBeforeValue,
+			final String valueWithAttribute, final String attribute, final String charsAfterValue) {
+		//remove spezial characters immediatly after or before wildcards as they would result in queryies like attribute:query +attribute:*
+		String cleanedValueWithAttribute = valueWithAttribute.replaceAll("[" + SPEZIAL_CHARACTERS + "]+(\\*)", "$1");
+		cleanedValueWithAttribute = cleanedValueWithAttribute.replaceAll("(" + attribute + ":\\*)[" + SPEZIAL_CHARACTERS + "]+", "$1");
+		
+		return charsBeforeValue + "("
+				+ cleanedValueWithAttribute.replaceAll("\\\\?[" + SPEZIAL_CHARACTERS + "]([^" + SPEZIAL_CHARACTERS + "]+)", " +"
+						+ attribute + ":$1") + ")" + charsAfterValue;
 	}
 
 	/**
