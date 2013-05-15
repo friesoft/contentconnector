@@ -416,7 +416,7 @@ class DefaultIndexAccessor implements IndexAccessor {
 
 			// set custom config
 			if (config != null) {
-				writerConfig.setWriteLockTimeout(config.getInteger(CONFIG_WRITE_LOCK_TIMEOUT_KEY, 5000));
+				writerConfig.setWriteLockTimeout(config.getInteger(CONFIG_WRITE_LOCK_TIMEOUT_KEY, 1000));
 			}
 
 			cachedWriter = new IndexWriter(directory, writerConfig);
