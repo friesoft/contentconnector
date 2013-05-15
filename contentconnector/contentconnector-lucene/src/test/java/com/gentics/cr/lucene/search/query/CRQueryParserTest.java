@@ -61,7 +61,7 @@ public class CRQueryParserTest extends AbstractLuceneTest {
 			"edittimestamp:1313160620",
 			"node_id:3"))); //12.08.2011 16:50:20
 		/* 6 */documents.add(new ComparableDocument(lucene.add(
-			SimpleLucene.CONTENT_ATTRIBUTE + ":word7",
+			SimpleLucene.CONTENT_ATTRIBUTE + ":word7, something 4,500.66",
 			"updatetimestamp:1314627329",
 			"edittimestamp:1314627329",
 			"node_id:3"))); //29.08.2011 16:15:29
@@ -99,6 +99,14 @@ public class CRQueryParserTest extends AbstractLuceneTest {
 		Collection<ComparableDocument> matchedDocuments = wrapComparable(lucene.find(parser.parse("word")));
 		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(0), documents.get(1), documents.get(2),
 				documents.get(4), documents.get(5), documents.get(6), documents.get(7), documents.get(8) });
+	}
+	
+	
+	public void testWordMatchWithComma() throws ParseException, CorruptIndexException, IOException {
+		crRequest.set(CRRequest.WORDMATCH_KEY, "beg");
+		parser = new CRQueryParser(LuceneVersion.getVersion(), SEARCHED_ATTRIBUTES, STANDARD_ANALYZER, crRequest);
+		Collection<ComparableDocument> matchedDocuments = wrapComparable(lucene.find(parser.parse("word7, AND something")));
+		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(6) });
 	}
 
 	public void testWordMatchBeg() throws ParseException, CorruptIndexException, IOException {
@@ -199,10 +207,27 @@ public class CRQueryParserTest extends AbstractLuceneTest {
 		Collection<ComparableDocument> matchedDocuments = wrapComparable(lucene.find(parser.parse("01/23456789")));
 		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(8) });
 	}
-
+	
 	public void testNumberWithSlashesAndWildcard() throws CorruptIndexException, IOException, ParseException {
 		Collection<ComparableDocument> matchedDocuments = wrapComparable(lucene.find(parser.parse("01/2*")));
 		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(8) });
+	}
+	
+	public void testNumberWithComma() throws CorruptIndexException, IOException, ParseException {
+		Collection<ComparableDocument> matchedDocuments = wrapComparable(lucene.find(parser.parse("4,500.66")));
+		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(6) });
+	}
+	
+	public void testNumberWithCommaAndWildcard() throws CorruptIndexException, IOException, ParseException {
+		Collection<ComparableDocument> matchedDocuments = wrapComparable(lucene.find(parser.parse("4,5*")));
+		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(6) });
+	}
+	
+	public void testNumberWithCommaAndWildcards() throws CorruptIndexException, IOException, ParseException {
+		crRequest.set(CRRequest.WORDMATCH_KEY, "sub");
+		parser = new CRQueryParser(LuceneVersion.getVersion(), SEARCHED_ATTRIBUTES, STANDARD_ANALYZER, crRequest);
+		Collection<ComparableDocument> matchedDocuments = wrapComparable(lucene.find(parser.parse("4,5")));
+		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(6) });
 	}
 
 	public void testNumberWithSlashesAndWildcards() throws CorruptIndexException, IOException, ParseException {
