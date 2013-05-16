@@ -526,13 +526,16 @@ public class CustomSpellChecker implements java.io.Closeable {
 		synchronized (modifyCurrentIndexLock) {
 			ensureOpen();
 
-			final IndexAccessor accessor = this.spellIndex.getAccessor();
-			final IndexWriter writer = accessor.getWriter();
-			writer.setMergeFactor(300);
-			final IndexSearcher indexSearcher = (IndexSearcher) accessor.getPrioritizedSearcher();
+			IndexAccessor accessor = this.spellIndex.getAccessor();
+			IndexWriter writer = accessor.getWriter();
+			IndexSearcher indexSearcher = null;
 			int obj_count = 0;
-
 			try {
+				accessor = this.spellIndex.getAccessor();
+				writer = accessor.getWriter();
+				writer.setMergeFactor(300);
+				indexSearcher = (IndexSearcher) accessor.getPrioritizedSearcher();
+
 				Iterator<String> iter = dict.getWordsIterator();
 				while (iter.hasNext()) {
 					String word = iter.next();
@@ -560,8 +563,14 @@ public class CustomSpellChecker implements java.io.Closeable {
 					writer.optimize();
 					this.spellIndex.createReopenFile();
 				}
-				accessor.release(writer);
-				accessor.release(indexSearcher);
+				if(accessor != null) {
+					if (writer != null) {
+						accessor.release(writer);
+					}
+					if (indexSearcher != null) {
+						accessor.release(indexSearcher);
+					}
+				}
 			}
 		}
 	}
