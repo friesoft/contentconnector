@@ -34,6 +34,9 @@ public class CRQueryParser extends QueryParser {
 	 */
 	private static final int THREE = 3;
 	
+	/**
+	 * Spezial Characters that cannot be searched (as they were removed in the index by the analyzer)
+	 */
 	private static final String SPEZIAL_CHARACTERS = ",-\\/";
 
 	/**
