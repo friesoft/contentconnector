@@ -11,12 +11,16 @@ import com.gentics.cr.util.indexing.AbstractAfterActionTask;
 import com.gentics.cr.util.indexing.IndexControllerSingleton;
 import com.gentics.cr.util.indexing.IndexLocation;
 
+/**
+ * Task, that runs after the completition of the index-job and creates an archive of the index.
+ * @author voglerc
+ *
+ */
 public class CompressIndexTask extends AbstractAfterActionTask {
 
 	/**
 	 * Create an archive of the index.
-	 * @param index Index to create a tarball of.
-	 * @param response 
+	 * @param config configuration
 	 */
 	public void execute(final CRConfig config) {
 		ConcurrentHashMap<String, IndexLocation> indexLocations = IndexControllerSingleton.getIndexControllerInstance().getIndexes();
@@ -39,8 +43,13 @@ public class CompressIndexTask extends AbstractAfterActionTask {
 					//set to read only so the index jobs will not delete it.
 					writeLock.setReadOnly();
 
-					FileOutputStream fileOutputStream = new FileOutputStream(new StringBuilder(indexLocation.getIndexLocation())
-							.append("/../").append(projectShortName).append(".tar.gz").toString());
+					File compressedIndexDirectory = indexDirectory.getParentFile();
+					File compressedIndexFile = new File(new StringBuilder(compressedIndexDirectory.getAbsolutePath()).append("/")
+							.append(projectShortName).append(".tar.gz").toString());
+					if (compressedIndexFile.exists()) {
+						compressedIndexFile.delete();
+					}
+					FileOutputStream fileOutputStream = new FileOutputStream(compressedIndexFile);
 					ArchiverUtil.generateGZippedTar(fileOutputStream, indexDirectory);
 				} else {
 					LOGGER.error("Cannot lock the index directory to ensure the consistency of the archive.");
