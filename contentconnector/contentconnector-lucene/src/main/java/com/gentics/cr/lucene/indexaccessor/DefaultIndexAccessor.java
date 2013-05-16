@@ -35,6 +35,8 @@ import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.LogMergePolicy;
+import org.apache.lucene.index.MergePolicy;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Searcher;
 import org.apache.lucene.search.Similarity;
@@ -417,6 +419,10 @@ class DefaultIndexAccessor implements IndexAccessor {
 			// set custom config
 			if (config != null) {
 				writerConfig.setWriteLockTimeout(config.getInteger(CONFIG_WRITE_LOCK_TIMEOUT_KEY, 1000));
+				MergePolicy merge = writerConfig.getMergePolicy();
+				if(merge instanceof LogMergePolicy) {
+					((LogMergePolicy) merge).setMergeFactor(300);
+				}
 			}
 
 			cachedWriter = new IndexWriter(directory, writerConfig);

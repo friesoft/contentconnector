@@ -27,6 +27,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.IndexReader.FieldOption;
 import org.apache.lucene.search.BooleanClause;
@@ -533,7 +534,6 @@ public class CustomSpellChecker implements java.io.Closeable {
 			try {
 				accessor = this.spellIndex.getAccessor();
 				writer = accessor.getWriter();
-				writer.setMergeFactor(300);
 				indexSearcher = (IndexSearcher) accessor.getPrioritizedSearcher();
 
 				Iterator<String> iter = dict.getWordsIterator();
