@@ -526,8 +526,8 @@ public class CustomSpellChecker implements java.io.Closeable {
 		synchronized (modifyCurrentIndexLock) {
 			ensureOpen();
 
-			IndexAccessor accessor = this.spellIndex.getAccessor();
-			IndexWriter writer = accessor.getWriter();
+			IndexAccessor accessor = null;
+			IndexWriter writer = null;
 			IndexSearcher indexSearcher = null;
 			int obj_count = 0;
 			try {
