@@ -8,14 +8,27 @@ import org.apache.log4j.Logger;
 
 import com.gentics.cr.configuration.GenericConfiguration;
 
+/**
+ * Abstract implementation of an IActionTask.
+ * 
+ * @author voglerc
+ */
 public abstract class AbstractAfterActionTask implements IAfterActionTask {
 
+	/**
+	 * key for configuration.
+	 */
 	private static final String AFTERACTION_KEY = "afteractiontask";
+
+	/**
+	 * class that will be executed.
+	 */
 	private static final String AFTERACTION_CLASS_KEY = "class";
 
+	/**
+	 * Logging.
+	 */
 	protected static final Logger LOGGER = Logger.getLogger(AbstractAfterActionTask.class);
-
-	protected String actionKey;
 
 	/**
 	 * @param config - configuration containing the definition of the transformers
@@ -32,9 +45,8 @@ public abstract class AbstractAfterActionTask implements IAfterActionTask {
 					String taskClass = (String) c.get(AFTERACTION_CLASS_KEY);
 					try {
 						IAfterActionTask t = null;
-						t = (IAfterActionTask) Class.forName(taskClass).getConstructor(null).newInstance();
+						t = (IAfterActionTask) Class.forName(taskClass).getConstructor(((Class<?>) null)).newInstance();
 						if (t != null) {
-							t.setActionkey(e.getKey());
 							ret.add(t);
 						}
 					} catch (Exception ex) {
@@ -47,10 +59,6 @@ public abstract class AbstractAfterActionTask implements IAfterActionTask {
 		}
 
 		return null;
-	}
-
-	public void setActionkey(final String key) {
-		this.actionKey = key;
 	}
 
 }

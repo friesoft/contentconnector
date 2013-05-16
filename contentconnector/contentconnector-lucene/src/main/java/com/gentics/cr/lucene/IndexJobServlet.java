@@ -1,5 +1,6 @@
 package com.gentics.cr.lucene;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,11 +19,11 @@ import org.apache.log4j.Logger;
 
 import com.gentics.cr.CRConfigUtil;
 import com.gentics.cr.lucene.indexer.index.LuceneIndexLocation;
+import com.gentics.cr.lucene.indexer.index.LuceneSingleIndexLocation;
 import com.gentics.cr.lucene.information.SpecialDirectoryRegistry;
 import com.gentics.cr.monitoring.MonitorFactory;
 import com.gentics.cr.servlet.VelocityServlet;
 import com.gentics.cr.util.indexing.IndexController;
-import com.gentics.cr.util.indexing.IndexControllerSingleton;
 import com.gentics.cr.util.indexing.IndexExtension;
 import com.gentics.cr.util.indexing.IndexJobQueue;
 import com.gentics.cr.util.indexing.IndexLocation;
@@ -59,7 +60,8 @@ public class IndexJobServlet extends VelocityServlet {
 		}
 	}
 
-	public void doService(HttpServletRequest request, HttpServletResponse response) throws IOException {
+	@Override
+	public void doService(final HttpServletRequest request, final HttpServletResponse response) throws IOException {
 
 		// starttime
 		long s = new Date().getTime();
@@ -68,14 +70,19 @@ public class IndexJobServlet extends VelocityServlet {
 		String action = getAction(request);
 		String index = request.getParameter("idx");
 		if ("download".equals(action)) {
-			//TODO: Index laden
-			response.setContentType("application/x-compressed, application/x-tar");
-			response.setHeader("Content-Disposition", "attachment; filename=" + index + ".tar.gz");
-			String basePath = IndexControllerSingleton.getIndexControllerInstance().getConfig()
-					.get(new StringBuilder("index.").append(index).append(".indexLocations.0.path").toString()).toString();
-			basePath = basePath + "/../";
-			InputStream compressedIndex = new FileInputStream(new StringBuilder(basePath).append(index).append(".tar.gz").toString());
-			IOUtils.copy(compressedIndex, response.getOutputStream());
+			IndexLocation location = indexer.getIndexes().get(index);
+			if (location instanceof LuceneSingleIndexLocation) {
+				// set metainformation to response
+				response.setContentType("application/x-compressed, application/x-tar");
+				response.setHeader("Content-Disposition", "attachment; filename=" + index + ".tar.gz");
+
+				// load the compressed index
+				LuceneSingleIndexLocation indexLocation = (LuceneSingleIndexLocation) location;
+				File compressedIndexDirectory = new File(indexLocation.getReopenFilename()).getParentFile().getParentFile();
+				InputStream compressedIndex = new FileInputStream(new StringBuilder(compressedIndexDirectory.getAbsolutePath()).append("/")
+						.append(index).append(".tar.gz").toString());
+				IOUtils.copy(compressedIndex, response.getOutputStream());
+			}
 			skipRenderingVelocity();
 		} else {
 			response.setContentType("text/html");
