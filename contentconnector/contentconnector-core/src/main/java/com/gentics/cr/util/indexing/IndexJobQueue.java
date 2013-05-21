@@ -346,6 +346,19 @@ public class IndexJobQueue {
 		return false;
 	}
 
+	public final boolean addJobs(final List<AbstractUpdateCheckerJob> jobList) {
+		if (jobList == null || jobList.isEmpty()) {
+			return false;
+		}
+		boolean result = true;
+		synchronized (IndexJobQueue.this) {
+			for (AbstractUpdateCheckerJob job : jobList) {
+				result &= addJob(job);
+			}
+		}
+		return result;
+	}
+
 	/**
 	 * Adds a list of CRIndexJobs to the job queue.
 	 * @param jobList list of jobs
