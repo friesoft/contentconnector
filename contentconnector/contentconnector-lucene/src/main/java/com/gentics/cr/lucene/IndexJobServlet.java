@@ -111,7 +111,7 @@ public class IndexJobServlet extends VelocityServlet {
 					}
 					if ("reindex".equalsIgnoreCase(action)) {
 						// TODO: implement reindex-job
-						loc.createClearJob();
+						loc.createReindexJob();
 					}
 					if ("optimize".equalsIgnoreCase(action)) {
 						loc.createOptimizeJob();

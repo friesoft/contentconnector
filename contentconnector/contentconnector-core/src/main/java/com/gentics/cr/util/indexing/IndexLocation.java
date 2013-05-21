@@ -577,6 +577,32 @@ public abstract class IndexLocation {
 		return null;
 	}
 
+	private AbstractUpdateCheckerJob createClearJobInstance() {
+		Class<? extends AbstractUpdateCheckerJob> deletejobImplementationClass = getDeleteJobImplementationClass(config);
+		AbstractUpdateCheckerJob indexJob = null;
+		try {
+			Constructor<? extends AbstractUpdateCheckerJob> deletejobImplementationClassConstructor = deletejobImplementationClass
+					.getConstructor(new Class[] { CRConfig.class, IndexLocation.class, ConcurrentHashMap.class });
+			Object indexJobObject = deletejobImplementationClassConstructor.newInstance(config, this, null);
+			indexJob = (AbstractUpdateCheckerJob) indexJobObject;
+		} catch (ClassCastException e) {
+			log.error("Please configure an implementation of " + AbstractUpdateCheckerJob.class + " ", e);
+		} catch (SecurityException e) {
+			log.error("Cannot load class for creating a new IndexJob", e);
+		} catch (NoSuchMethodException e) {
+			log.error("Cannot find constructor for creating a new IndexJob", e);
+		} catch (IllegalArgumentException e) {
+			log.error("Error creating a new IndexJob", e);
+		} catch (InstantiationException e) {
+			log.error("Error creating a new IndexJob", e);
+		} catch (IllegalAccessException e) {
+			log.error("Error creating a new IndexJob", e);
+		} catch (InvocationTargetException e) {
+			log.error("Error creating a new IndexJob", e);
+		}
+		return indexJob;
+	}
+
 	/**
 	 * Update the last index job creation time in the local map.
 	 * 
@@ -607,6 +633,24 @@ public abstract class IndexLocation {
 		//use ConcurrentSkipListMap for alphabetical ordered IndexJob Creation
 		ConcurrentSkipListMap<String, CRConfigUtil> configs = new ConcurrentSkipListMap<String, CRConfigUtil>(getCRMap());
 
+		List<AbstractUpdateCheckerJob> jobList = createAllIndexJobInstances(configs);
+		queue.addJobs(jobList);
+	}
+
+	public void createReindexJob() {
+		//use ConcurrentSkipListMap for alphabetical ordered IndexJob Creation
+		ConcurrentSkipListMap<String, CRConfigUtil> configs = new ConcurrentSkipListMap<String, CRConfigUtil>(getCRMap());
+
+		List<AbstractUpdateCheckerJob> jobList = new ArrayList<AbstractUpdateCheckerJob>();
+		// add a clear-job
+		jobList.add(createClearJobInstance());
+		// add the reindex-job(s)
+		jobList.addAll(createAllIndexJobInstances(configs));
+
+		queue.addJobs(jobList);
+	}
+
+	private List<AbstractUpdateCheckerJob> createAllIndexJobInstances(final ConcurrentSkipListMap<String, CRConfigUtil> configs) {
 		List<AbstractUpdateCheckerJob> jobList = new ArrayList<AbstractUpdateCheckerJob>();
 		for (Entry<String, CRConfigUtil> e : configs.entrySet()) {
 
@@ -635,39 +679,7 @@ public abstract class IndexLocation {
 			}
 
 		}
-		queue.addJobs(jobList);
-	}
-
-	/**
-	 * Creates a job that clears the index.
-	 * 
-	 * @return true if job was added to the queue
-	 */
-	public boolean createClearJob() {
-		Class<? extends AbstractUpdateCheckerJob> deletejobImplementationClass = getDeleteJobImplementationClass(config);
-		AbstractUpdateCheckerJob indexJob = null;
-		try {
-			Constructor<? extends AbstractUpdateCheckerJob> deletejobImplementationClassConstructor = deletejobImplementationClass
-					.getConstructor(new Class[] { CRConfig.class, IndexLocation.class, ConcurrentHashMap.class });
-			Object indexJobObject = deletejobImplementationClassConstructor.newInstance(config, this, null);
-			indexJob = (AbstractUpdateCheckerJob) indexJobObject;
-			return this.queue.addJob(indexJob);
-		} catch (ClassCastException e) {
-			log.error("Please configure an implementation of " + AbstractUpdateCheckerJob.class + " ", e);
-		} catch (SecurityException e) {
-			log.error("Cannot load class for creating a new IndexJob", e);
-		} catch (NoSuchMethodException e) {
-			log.error("Cannot find constructor for creating a new IndexJob", e);
-		} catch (IllegalArgumentException e) {
-			log.error("Error creating a new IndexJob", e);
-		} catch (InstantiationException e) {
-			log.error("Error creating a new IndexJob", e);
-		} catch (IllegalAccessException e) {
-			log.error("Error creating a new IndexJob", e);
-		} catch (InvocationTargetException e) {
-			log.error("Error creating a new IndexJob", e);
-		}
-		return false;
+		return jobList;
 	}
 
 	/**

@@ -81,7 +81,7 @@ $numberString.replaceAll("[^0-9]([0-9]{$round})[0-9]*",".$1")##
 			h1 { text-transform: uppercase; font-weight: bold; font-size: 20pt; color: #A0A0A0; margin: 15px 0 10px 0; }
 			h2 { text-transform: uppercase; font-weight: bold; font-size: 15pt; color: #A0A0A0; margin: 15px 0 10px 0; }
 			a { text-decoration: none; }
-			a.reindexlink { color:red; }
+			a.reindexlink { color:green; }
 			a.optlink { color:green; }
 			
 			img { border: none; }
