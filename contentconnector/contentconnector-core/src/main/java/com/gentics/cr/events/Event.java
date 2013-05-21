@@ -5,9 +5,9 @@ package com.gentics.cr.events;
  * Last changed: $Date: 2009-07-10 10:49:03 +0200 (Fr, 10 Jul 2009) $
  * @version $Revision: 131 $
  * @author $Author: supnig@constantinopel.at $
- *
+ * @param <T> Type of data
  */
-public abstract class Event {
+public abstract class Event<T> {
 	/**
 	 * Get the Type of the Event.
 	 * @return type as String
@@ -18,5 +18,5 @@ public abstract class Event {
 	 * Get the Data of the Event.
 	 * @return data
 	 */
-	public abstract Object getData();
+	public abstract T getData();
 }

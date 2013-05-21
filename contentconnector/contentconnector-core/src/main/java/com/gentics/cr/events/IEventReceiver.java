@@ -11,5 +11,5 @@ public interface IEventReceiver {
 	 * Method that will be executed if an event is thrown.
 	 * @param event fired event.
 	 */
-	void processEvent(Event event);
+	void processEvent(final Event<?> event);
 }

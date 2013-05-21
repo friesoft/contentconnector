@@ -18,6 +18,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 
 import com.gentics.cr.CRConfigUtil;
+import com.gentics.cr.lucene.indexer.compress.IndexCompressor;
 import com.gentics.cr.lucene.indexer.index.LuceneIndexLocation;
 import com.gentics.cr.lucene.indexer.index.LuceneSingleIndexLocation;
 import com.gentics.cr.lucene.information.SpecialDirectoryRegistry;
@@ -76,11 +77,18 @@ public class IndexJobServlet extends VelocityServlet {
 				response.setContentType("application/x-compressed, application/x-tar");
 				response.setHeader("Content-Disposition", "attachment; filename=" + index + ".tar.gz");
 
-				// load the compressed index
+				// locate the compressed index
 				LuceneSingleIndexLocation indexLocation = (LuceneSingleIndexLocation) location;
 				File compressedIndexDirectory = new File(indexLocation.getReopenFilename()).getParentFile().getParentFile();
-				InputStream compressedIndex = new FileInputStream(new StringBuilder(compressedIndexDirectory.getAbsolutePath()).append("/")
-						.append(index).append(".tar.gz").toString());
+				File compressedIndexFile = new File(new StringBuilder(compressedIndexDirectory.getAbsolutePath()).append("/").append(index)
+						.append(".tar.gz").toString());
+				if (!compressedIndexFile.exists()) {
+					// compress index if it's not present
+					IndexCompressor indexCompressor = new IndexCompressor();
+					indexCompressor.compress(index);
+				}
+				// load the compressed index
+				InputStream compressedIndex = new FileInputStream(compressedIndexFile);
 				IOUtils.copy(compressedIndex, response.getOutputStream());
 			}
 			skipRenderingVelocity();
@@ -101,7 +109,8 @@ public class IndexJobServlet extends VelocityServlet {
 					if ("startWorker".equalsIgnoreCase(action)) {
 						queue.resumeWorker();
 					}
-					if ("clear".equalsIgnoreCase(action)) {
+					if ("reindex".equalsIgnoreCase(action)) {
+						// TODO: implement reindex-job
 						loc.createClearJob();
 					}
 					if ("optimize".equalsIgnoreCase(action)) {

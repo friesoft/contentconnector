@@ -45,7 +45,7 @@ public final class EventManager {
 	 * Fire a event to the registered receivers.
 	 * @param event fired event
 	 */
-	public synchronized void fireEvent(final Event event) {
+	public synchronized void fireEvent(final Event<?> event) {
 		if (this.receivers != null) {
 			for (IEventReceiver ir : receivers) {
 				ir.processEvent(event);
