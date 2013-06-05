@@ -110,11 +110,7 @@ public class IndexJobServlet extends VelocityServlet {
 						queue.resumeWorker();
 					}
 					if ("reindex".equalsIgnoreCase(action)) {
-						// TODO: implement reindex-job
 						loc.createReindexJob();
-					}
-					if ("optimize".equalsIgnoreCase(action)) {
-						loc.createOptimizeJob();
 					}
 					if ("addJob".equalsIgnoreCase(action)) {
 						String cr = request.getParameter("cr");

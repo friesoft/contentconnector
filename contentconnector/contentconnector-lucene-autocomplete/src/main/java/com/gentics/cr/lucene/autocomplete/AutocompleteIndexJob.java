@@ -107,7 +107,6 @@ public class AutocompleteIndexJob extends AbstractUpdateCheckerJob implements Au
 				doc.add(new Field(COUNT_FIELD, Integer.toString(wordsMap.get(word)), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS)); // count
 				writer.addDocument(doc);
 			}
-			writer.optimize();
 			autocompleteLocation.createReopenFile();
 		} finally {
 

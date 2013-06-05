@@ -35,12 +35,6 @@ public class DefaultIndexLocation extends IndexLocation {
 	}
 
 	@Override
-	public boolean isOptimized() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
 	public boolean isLocked() {
 		// TODO Auto-generated method stub
 		return false;

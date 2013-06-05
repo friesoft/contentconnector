@@ -24,11 +24,6 @@ public class DummyIndexLocation extends IndexLocation {
 	}
 
 	@Override
-	public boolean isOptimized() {
-		return false;
-	}
-
-	@Override
 	public boolean isLocked() {
 		return false;
 	}

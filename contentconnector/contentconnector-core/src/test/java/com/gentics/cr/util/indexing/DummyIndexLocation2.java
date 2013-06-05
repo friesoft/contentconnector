@@ -12,7 +12,6 @@ import com.gentics.cr.CRConfigUtil;
  */
 public class DummyIndexLocation2 extends IndexLocation {
 
-	
 	/**
 	 * @param givenConfig configuration for DummyIndexLocation
 	 */
@@ -31,11 +30,6 @@ public class DummyIndexLocation2 extends IndexLocation {
 	}
 
 	@Override
-	public boolean isOptimized() {
-		return false;
-	}
-
-	@Override
 	public boolean isLocked() {
 		return false;
 	}
@@ -48,9 +42,8 @@ public class DummyIndexLocation2 extends IndexLocation {
 	/**
 	 * Overrides createCRIndexJob and print out which index Job was created. Is used in CreateAllCRIndexJobsOrderTest.
 	 */
-	public boolean createCRIndexJob(CRConfig config,
-			ConcurrentHashMap<String, CRConfigUtil> configmap) {
-		System.out.print("Create Job: " + config.getName()+" ");
+	public boolean createCRIndexJob(CRConfig config, ConcurrentHashMap<String, CRConfigUtil> configmap) {
+		System.out.print("Create Job: " + config.getName() + " ");
 		return true;
 	}
 

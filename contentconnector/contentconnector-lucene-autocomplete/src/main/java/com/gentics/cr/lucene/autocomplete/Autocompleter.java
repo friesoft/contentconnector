@@ -83,16 +83,13 @@ public class Autocompleter implements IEventReceiver, AutocompleteConfigurationK
 	public Autocompleter(CRConfig config) {
 		GenericConfiguration srcConf = (GenericConfiguration) config.get(SOURCE_INDEX_KEY);
 		GenericConfiguration autoConf = (GenericConfiguration) config.get(AUTOCOMPLETE_INDEX_KEY);
-		useAutocompleteIndexExtension = config.getBoolean(
-			AUTOCOMPLETE_USE_AUTCOMPLETE_INDEXER,
-			useAutocompleteIndexExtension);
+		useAutocompleteIndexExtension = config.getBoolean(AUTOCOMPLETE_USE_AUTCOMPLETE_INDEXER, useAutocompleteIndexExtension);
 
 		source = null;
 		if (!useAutocompleteIndexExtension) {
 			source = LuceneIndexLocation.getIndexLocation(new CRConfigUtil(srcConf, "SOURCE_INDEX_KEY"));
 		}
-		autocompleteLocation = LuceneIndexLocation
-				.getIndexLocation(new CRConfigUtil(autoConf, AUTOCOMPLETE_INDEX_KEY));
+		autocompleteLocation = LuceneIndexLocation.getIndexLocation(new CRConfigUtil(autoConf, AUTOCOMPLETE_INDEX_KEY));
 		autocompleteLocation.registerDirectoriesSpecial();
 		String s_autofield = config.getString(AUTOCOMPLETE_FIELD_KEY);
 
@@ -255,11 +252,9 @@ public class Autocompleter implements IEventReceiver, AutocompleteConfigurationK
 				Document doc = new Document();
 				doc.add(new Field(SOURCE_WORD_FIELD, word, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS)); // orig term
 				doc.add(new Field(GRAMMED_WORDS_FIELD, word, Field.Store.YES, Field.Index.ANALYZED)); // grammed
-				doc.add(new Field(COUNT_FIELD, Integer.toString(wordsMap.get(word)), Field.Store.YES,
-						Field.Index.NOT_ANALYZED_NO_NORMS)); // count
+				doc.add(new Field(COUNT_FIELD, Integer.toString(wordsMap.get(word)), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS)); // count
 				writer.addDocument(doc);
 			}
-			writer.optimize();
 		} finally {
 
 			sia.release(sourceReader, false);

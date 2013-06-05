@@ -97,17 +97,6 @@ public abstract class IndexLocation {
 	 */
 	private static final String DEFAULT_DELETEJOBCLASS = "com.gentics.cr.lucene.indexer.index.CRLuceneDeleteJob";
 
-	/**
-	 * The key in the configuration for specifying the optimize job
-	 * implementation class.
-	 */
-	public static final String OPTIMIZEJOBCLASS_KEY = "optimizejobclass";
-
-	/**
-	 * name of the default class used for a optimize job.
-	 */
-	private static final String DEFAULT_OPTIMIZEJOBCLASS = "com.gentics.cr.lucene.indexer.index.CRLuceneOptimizeJob";
-
 	// Instance Members
 	/**
 	 * Holds the index intervals for each index part if configured individually.
@@ -458,30 +447,6 @@ public abstract class IndexLocation {
 	/**
 	 * Helper method to get Class of UpdateJobImplementation.
 	 * 
-	 * @param config {@link CRConfig} to
-	 * @return
-	 */
-	private static Class<? extends AbstractUpdateCheckerJob> getOptimizeJobImplementationClass(CRConfig config) {
-		Class<?> optimizejobImplementationClassGeneric;
-		Class<? extends AbstractUpdateCheckerJob> optimizejobImplementationClass;
-		String optimizejobimplementationClassName = config.getString(OPTIMIZEJOBCLASS_KEY);
-		if (optimizejobimplementationClassName == null) {
-			optimizejobimplementationClassName = DEFAULT_OPTIMIZEJOBCLASS;
-		}
-
-		try {
-			optimizejobImplementationClassGeneric = Class.forName(optimizejobimplementationClassName);
-			optimizejobImplementationClass = optimizejobImplementationClassGeneric.asSubclass(AbstractUpdateCheckerJob.class);
-			return optimizejobImplementationClass;
-		} catch (ClassNotFoundException e) {
-			log.error("Cannot load class for creating a new IndexJob", e);
-		}
-		return null;
-	}
-
-	/**
-	 * Helper method to get Class of UpdateJobImplementation.
-	 * 
 	 * @param config
 	 *            {@link CRConfig} to
 	 * @return
@@ -525,8 +490,6 @@ public abstract class IndexLocation {
 
 		return getDocCount() > 0;
 	}
-
-	public abstract boolean isOptimized();
 
 	public abstract boolean isLocked();
 
@@ -680,38 +643,6 @@ public abstract class IndexLocation {
 
 		}
 		return jobList;
-	}
-
-	/**
-	 * Creates a job that optimizes the index.
-	 * 
-	 * @return true if job was added to the queue
-	 */
-	public boolean createOptimizeJob() {
-		Class<? extends AbstractUpdateCheckerJob> optimizejobImplementationClass = getOptimizeJobImplementationClass(config);
-		AbstractUpdateCheckerJob indexJob = null;
-		try {
-			Constructor<? extends AbstractUpdateCheckerJob> optimizejobImplementationClassConstructor = optimizejobImplementationClass
-					.getConstructor(new Class[] { CRConfig.class, IndexLocation.class, ConcurrentHashMap.class });
-			Object indexJobObject = optimizejobImplementationClassConstructor.newInstance(config, this, null);
-			indexJob = (AbstractUpdateCheckerJob) indexJobObject;
-			return this.queue.addJob(indexJob);
-		} catch (ClassCastException e) {
-			log.error("Please configure an implementation of " + AbstractUpdateCheckerJob.class + " ", e);
-		} catch (SecurityException e) {
-			log.error("Cannot load class for creating a new IndexJob", e);
-		} catch (NoSuchMethodException e) {
-			log.error("Cannot find constructor for creating a new IndexJob", e);
-		} catch (IllegalArgumentException e) {
-			log.error("Error creating a new IndexJob", e);
-		} catch (InstantiationException e) {
-			log.error("Error creating a new IndexJob", e);
-		} catch (IllegalAccessException e) {
-			log.error("Error creating a new IndexJob", e);
-		} catch (InvocationTargetException e) {
-			log.error("Error creating a new IndexJob", e);
-		}
-		return false;
 	}
 
 	/**
