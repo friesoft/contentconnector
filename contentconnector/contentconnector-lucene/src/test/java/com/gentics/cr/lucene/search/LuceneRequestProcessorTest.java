@@ -108,7 +108,7 @@ public class LuceneRequestProcessorTest {
 		Collection<CRResolvableBean> result = rp.getObjects(request);
 		assertNotNull("Didn't get a result. Is something wrong with the lucene config?", result);
 		assertEquals(1, result.size());
-		assertEquals("<strong>inhalt</strong> der die contentid enthält 12 ", result.iterator().next().get("content"));
+		assertEquals("<strong>inhalt</strong> der die contentid enthält 12", result.iterator().next().get("content"));
 		
 		
 	}
