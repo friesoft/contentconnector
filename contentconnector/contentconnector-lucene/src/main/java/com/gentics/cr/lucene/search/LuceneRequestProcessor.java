@@ -18,7 +18,10 @@ import org.apache.lucene.document.Fieldable;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.queryParser.QueryParser;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.TermQuery;
 
 import com.gentics.cr.CRConfig;
 import com.gentics.cr.CRError;
@@ -78,7 +81,7 @@ public class LuceneRequestProcessor extends RequestProcessor {
 	 * Provide the documents as is - that means no indexing has happend on the documents yet.
 	 * Key: GETSTOREDATTRIBUTES
 	 */
-	private static final String GET_STORED_ATTRIBUTE_KEY = "GETSTOREDATTRIBUTES";
+	public static final String GET_STORED_ATTRIBUTE_KEY = "GETSTOREDATTRIBUTES";
 
 	/**
 	 * Provide the stored attributes.
@@ -97,7 +100,7 @@ public class LuceneRequestProcessor extends RequestProcessor {
 	 * Id of the document to use for creating a CRResolvableBean.
 	 * In most cases this should be: contentid
 	 */
-	private static final String ID_ATTRIBUTE_KEY = "idAttribute";
+	public static final String ID_ATTRIBUTE_KEY = "idAttribute";
 
 	/**
 	 * Map of all highlighters to use for content highlighting.
@@ -452,15 +455,16 @@ public class LuceneRequestProcessor extends RequestProcessor {
 				String att = contentHighlighter.getKey();
 				//IF crBean matches the highlighters rule => highlight
 				if (highligther.match(crBean)) {
+					Query highlightQuery = removeNonMatchingAttributesFromQuery(att, parsedQuery);
 					String ret = null;
 					if (highligther instanceof AdvancedContentHighlighter) {
 						AdvancedContentHighlighter advancedHighlighter = (AdvancedContentHighlighter) highligther;
 						int documentId = Integer.parseInt(doc.get("id"));
 
-						ret = advancedHighlighter.highlight(parsedQuery, reader, documentId, att);
+						ret = advancedHighlighter.highlight(highlightQuery, reader, documentId, att);
 
 					} else {
-						ret = highligther.highlight((String) crBean.get(att), parsedQuery);
+						ret = highligther.highlight((String) crBean.get(att), highlightQuery);
 					}
 					if (ret != null && !"".equals(ret)) {
 						crBean.set(att, ret);
@@ -470,6 +474,47 @@ public class LuceneRequestProcessor extends RequestProcessor {
 			LOGGER.debug("Highlighters took " + (System.currentTimeMillis() - s2) + "ms");
 			ucProcessSearchHighlight.stop();
 		}
+	}
+	
+	/**
+	 * Removes all terms that use a different field from the highlight query to prevent those terms of influencing the highlight result.
+	 * E.g. content:text +node:12 would highlight 12 in the attribute content id the matching clause is not removed before highlighting.
+	 * @param attribute - attribute (field name) each term must have to be in the highlight query
+	 * @param parsedQuery - query to remove all non matching terms from.
+	 * @return query that only contains terms that search in the specified attribute
+	 */
+	private Query removeNonMatchingAttributesFromQuery(final String attribute, final Query parsedQuery) {
+		if (parsedQuery instanceof BooleanQuery) {
+			BooleanQuery cleanedQuery = new BooleanQuery();
+			for (BooleanClause clause : ((BooleanQuery) parsedQuery).getClauses()) {
+				BooleanClause cleanedClause = removeNonMatchingAttributesFromClause(attribute, clause);
+				if (cleanedClause != null) {
+					cleanedQuery.add(cleanedClause);
+				}
+			}
+			return cleanedQuery;
+		} else if (parsedQuery instanceof TermQuery) {
+			if (!attribute.equals(((TermQuery) parsedQuery).getTerm().field())) {
+				return null;
+			}
+			return parsedQuery;
+		}
+		return parsedQuery;
+	}
+
+	/**
+	 * Removes all terms that use a different field from the given clause to prevent those terms of influencing the highlight result.
+	 * E.g. content:text +node:12 would highlight 12 in the attribute content id the matching clause is not removed before highlighting.
+	 * @param attribute - attribute (field name) each term must have to be in the highlight query
+	 * @param clause - clause to check if the terms are matching the attribute
+	 * @return clase with query that only contains terms that search in the specified attribute
+	 */
+	private BooleanClause removeNonMatchingAttributesFromClause(String attribute, BooleanClause clause) {
+		Query cleanedQuery = removeNonMatchingAttributesFromQuery(attribute, clause.getQuery());
+		if (cleanedQuery != null) {
+			return new BooleanClause(cleanedQuery, clause.getOccur());
+		}
+		return null;
 	}
 
 	private void processDocuments(final LinkedHashMap<Document, Float> docs, final ArrayList<CRResolvableBean> result,

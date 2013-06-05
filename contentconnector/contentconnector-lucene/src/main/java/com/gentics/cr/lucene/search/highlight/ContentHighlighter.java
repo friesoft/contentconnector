@@ -45,11 +45,11 @@ public abstract class ContentHighlighter {
 	/**
 	 * highlighter attribute key.
 	 */
-	private static final String HIGHLIGHTER_ATTRIBUTE_KEY = "attribute";
+	public static final String HIGHLIGHTER_ATTRIBUTE_KEY = "attribute";
 	/**
 	 * highlighter rule key.
 	 */
-	private static final String HIGHLIGHTER_RULE_KEY = "rule";
+	public static final String HIGHLIGHTER_RULE_KEY = "rule";
 
 	/**
 	  * Unicode Punctuation Characters.<br />
@@ -85,12 +85,12 @@ public abstract class ContentHighlighter {
 	/**
 	 * prefix for highlighted text.
 	 */
-	protected static final String PHRASE_PREFIX_KEY = "highlightprefix";
+	public static final String PHRASE_PREFIX_KEY = "highlightprefix";
 
 	/**
 	 * postfix for highlighted text.
 	 */
-	protected static final String PHRASE_POSTFIX_KEY = "highlightpostfix";
+	public static final String PHRASE_POSTFIX_KEY = "highlightpostfix";
 
 	/**
 	 * Configuration Key for fragment seperator.
@@ -237,11 +237,11 @@ public abstract class ContentHighlighter {
 	/**
 	 * highlighter class key.
 	 */
-	private static final String HIGHLIGHTER_CLASS_KEY = "class";
+	public static final String HIGHLIGHTER_CLASS_KEY = "class";
 	/**
 	 * highlighter key.
 	 */
-	private static final String HIGHLIGHTER_KEY = "highlighter";
+	public static final String HIGHLIGHTER_KEY = "highlighter";
 
 	/**
 	 * Create table of ContentTransformers configured in config.

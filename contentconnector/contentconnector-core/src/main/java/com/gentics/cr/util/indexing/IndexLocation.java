@@ -40,9 +40,18 @@ public abstract class IndexLocation {
 	private static final String REOPEN_CHECK_TIMESTAMP = "timestamp";
 
 	protected static final String REOPEN_FILENAME = "reopen";
-	protected static final String INDEX_LOCATIONS_KEY = "indexLocations";
-	protected static final String INDEX_PATH_KEY = "path";
-	private static final String INDEX_LOCATION_CLASS_KEY = "indexLocationClass";
+	/**
+	 * key for the configuration of the index locations.
+	 */
+	public static final String INDEX_LOCATIONS_KEY = "indexLocations";
+	/**
+	 * key to set the directory of an index location in the configuration.
+	 */
+	public static final String INDEX_PATH_KEY = "path";
+	/**
+	 * Key to store the index location class name in the config. Class has to extend {@link IndexLocation}
+	 */
+	public static final String INDEX_LOCATION_CLASS_KEY = "indexLocationClass";
 
 	public static final String INDEX_EXTENSIONS_KEY = "extensions";
 	public static final String INDEX_EXTENSION_CLASS_KEY = "class";
