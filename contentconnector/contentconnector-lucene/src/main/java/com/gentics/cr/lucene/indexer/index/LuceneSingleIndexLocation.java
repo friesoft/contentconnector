@@ -157,9 +157,16 @@ public class LuceneSingleIndexLocation extends LuceneIndexLocation implements Ta
 			log.debug("Writing reopen to " + filename);
 			try {
 				File reopenFile = new File(filename);
+				long lastmodified = 0;
+				if (reopenFile.exists()) {
+					lastmodified = reopenFile.lastModified();
+				}
 				FileUtils.touch(reopenFile);
+				if (lastmodified == reopenFile.lastModified()) {
+					log.error("Lastmodified of " + getReopenFilename() + " was not changed!");
+				}
 			} catch (IOException e) {
-				log.warn("Cannot create reopen file! " + e);
+				log.error("Cannot create reopen file! " + e);
 			}
 		}
 	}
