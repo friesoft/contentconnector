@@ -22,16 +22,19 @@ public class DidyoumeanIndexDeleteJob extends AbstractUpdateCheckerJob {
 	private DidyoumeanIndexExtension didyoumean;
 
 	/**
+	 * static LOG4j {@link Logger} to LOG errors and debug.
+	 */
+	private static final Logger LOG = Logger.getLogger(DidyoumeanIndexDeleteJob.class);
+
+	/**
 	 * Constructor.
 	 * 
 	 * @param config configuration
 	 * @param indexLoc indexLocation
 	 * @param didyoumean the {@link com.gentics.cr.lucene.didyoumean.DidyoumeanIndexExtension} to clear
 	 */
-	public DidyoumeanIndexDeleteJob(final CRConfig config, final IndexLocation indexLoc,
-		DidyoumeanIndexExtension didyoumean) {
+	public DidyoumeanIndexDeleteJob(final CRConfig config, final IndexLocation indexLoc, DidyoumeanIndexExtension didyoumean) {
 		super(config, indexLoc, null);
-		log = Logger.getLogger(DidyoumeanIndexDeleteJob.class);
 
 		this.identifyer = identifyer.concat(":clear");
 		this.didyoumean = didyoumean;
@@ -43,15 +46,15 @@ public class DidyoumeanIndexDeleteJob extends AbstractUpdateCheckerJob {
 	@Override
 	protected final void indexCR(final IndexLocation indexLocation, final CRConfigUtil config) throws CRException {
 
-		log.debug("Starting to clear index.");
+		LOG.debug("Starting to clear index.");
 		CustomSpellChecker spellchecker = didyoumean.getSpellchecker();
 		try {
 			spellchecker.clearIndex();
 			didyoumean.getDidyoumeanLocation().resetIndexJobCreationTimes();
 		} catch (IOException e) {
-			log.error("Could not clear index", e);
+			LOG.error("Could not clear index", e);
 		}
-		log.debug("Finished clearing index.");
+		LOG.debug("Finished clearing index.");
 
 	}
 

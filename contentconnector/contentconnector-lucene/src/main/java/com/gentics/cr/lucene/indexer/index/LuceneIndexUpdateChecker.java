@@ -2,7 +2,6 @@ package com.gentics.cr.lucene.indexer.index;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Vector;
 
@@ -21,7 +20,7 @@ import com.gentics.cr.util.indexing.IndexUpdateChecker;
 
 /**
  * Lucene Implementation of IndexUpdateChecker.
- * Walks an Index and compares Identifyer/Timestamp pairs to the Objects in the Index
+ * Walks an Index and compares Identifier/Timestamp pairs to the Objects in the Index
  * 
  * Last changed: $Date: 2009-09-02 17:57:48 +0200 (Mi, 02 Sep 2009) $
  * @version $Revision: 180 $
@@ -29,23 +28,40 @@ import com.gentics.cr.util.indexing.IndexUpdateChecker;
  */
 public class LuceneIndexUpdateChecker extends IndexUpdateChecker {
 
-	LuceneIndexLocation indexLocation;
-	IndexAccessor indexAccessor;
-	LinkedHashMap<String, Integer> docs;
-	Iterator<String> docIT;
-	Vector<String> checkedDocuments;
+	/**
+	 * 
+	 */
+	private LuceneIndexLocation indexLocation;
+
+	/**
+	 * 
+	 */
+	private IndexAccessor indexAccessor;
+
+	/**
+	 * 
+	 */
+	private LinkedHashMap<String, Integer> docs;
+
+	/**
+	 * 
+	 */
+	private Vector<String> checkedDocuments;
+
+	/**
+	 * Log4j logger.
+	 */
 	private static final Logger log = Logger.getLogger(LuceneIndexUpdateChecker.class);
 
 	/**
 	 * Initializes the Lucene Implementation of {@link IndexUpdateChecker}.
-	 * @param indexLocation
-	 * @param termKey - Key under wich the termValue is stored in the Index e.g. CRID
-	 * @param termValue - Value wich to use for iteration e.g. CRID_1
-	 * @param idAttribute - ID-Attribute key that will be used for Identifyer
-	 * comparison. This has to represent the field where the identifyer in the
+	 * @param indexLocation 
+	 * @param termKey Key to use for storing termValue in the Index e.g. CRID
+	 * @param termValue Value to use for iteration e.g. CRID_1
+	 * @param idAttribute ID-Attribute key that will be used for Identifier
+	 * comparison. This has to represent the field where the identifier in the
 	 * method {@link com.gentics.cr.lucene.indexer.index.LuceneIndexUpdateChecker#checkUpToDate(String, Object, String, Resolvable)} 
 	 * is present.
-	 * @throws IOException 
 	 */
 	public LuceneIndexUpdateChecker(final LuceneIndexLocation indexLocation, final String termKey, final String termValue,
 		final String idAttribute) {
@@ -59,7 +75,6 @@ public class LuceneIndexUpdateChecker extends IndexUpdateChecker {
 			log.debug("Fetching sorted documents from index...");
 			docs = fetchSortedDocs(termDocs, reader, idAttribute);
 			log.debug("Fetched sorted docs from index");
-			docIT = docs.keySet().iterator();
 
 			checkedDocuments = new Vector<String>(100);
 
@@ -68,14 +83,15 @@ public class LuceneIndexUpdateChecker extends IndexUpdateChecker {
 			log.error("Error while retrieving termdocs. Next step: close down connection in finally block", e);
 		} finally {
 			if (indexAccessor != null && reader != null) {
-				log.debug("Closing down indexreader with write permissions (LuceneIndexUpdateChecker instantiation failed)");
+				log.debug("Closing down indexreader of IndexLocation: " + indexLocation + "/" + termValue
+						+ " with write permissions (LuceneIndexUpdateChecker instantiation failed)");
 				indexAccessor.release(reader, true);
 			}
 		}
 	}
 
 	@Override
-	protected final boolean checkUpToDate(final String identifyer, final Object timestamp, final String timestampattribute,
+	protected final boolean checkUpToDate(final String identifier, final Object timestamp, final String timestampattribute,
 			final Resolvable object) {
 		String timestampString;
 		if (timestamp == null) {
@@ -88,33 +104,34 @@ public class LuceneIndexUpdateChecker extends IndexUpdateChecker {
 		}
 
 		boolean readerWithWritePermissions = false;
-		if (docs.containsKey(identifyer)) {
+		if (docs.containsKey(identifier)) {
 
-			Integer documentId = docs.get(identifyer);
+			Integer documentId = docs.get(identifier);
 			IndexReader reader = null;
 			try {
 				reader = indexAccessor.getReader(readerWithWritePermissions);
 				Document document = reader.document(documentId);
-				checkedDocuments.add(identifyer);
+				checkedDocuments.add(identifier);
 				Object documentUpdateTimestamp = null;
 				try {
 					documentUpdateTimestamp = document.get(timestampattribute);
 				} catch (NumberFormatException e) {
-					log.debug("Got an error getting the document for " + identifyer + " from index", e);
+					log.debug("Got an error getting the document for " + identifier + " from index", e);
 				}
+
 				indexAccessor.release(reader, readerWithWritePermissions);
 				//Use strings to compare the attributes
 				if (documentUpdateTimestamp != null && !(documentUpdateTimestamp instanceof String)) {
 					documentUpdateTimestamp = documentUpdateTimestamp.toString();
 				}
 				if (documentUpdateTimestamp == null || !documentUpdateTimestamp.equals(timestampString)) {
-					log.debug(identifyer + ": object is not up to date.");
+					log.debug(identifier + ": object is not up to date.");
 					return false;
 				}
-				log.debug(identifyer + ": object is up to date.");
+				log.debug(identifier + ": object is up to date.");
 				return true;
 			} catch (IOException e) {
-				//TODO specify witch index is not readable
+				//TODO specify which index is not readable
 				StringBuilder directories = new StringBuilder();
 				Directory[] dirs = indexLocation.getDirectories();
 				for (Directory dir : dirs) {
@@ -169,7 +186,8 @@ public class LuceneIndexUpdateChecker extends IndexUpdateChecker {
 		checkedDocuments.clear();
 	}
 
-	private LinkedHashMap<String, Integer> fetchSortedDocs(TermDocs termDocs, IndexReader reader, String idAttribute) throws IOException {
+	private LinkedHashMap<String, Integer> fetchSortedDocs(final TermDocs termDocs, final IndexReader reader, final String idAttribute)
+			throws IOException {
 		LinkedHashMap<String, Integer> tmp = new LinkedHashMap<String, Integer>();
 
 		while (termDocs.next()) {

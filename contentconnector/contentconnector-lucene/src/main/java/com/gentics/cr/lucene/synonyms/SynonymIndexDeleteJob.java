@@ -20,6 +20,11 @@ import com.gentics.cr.util.indexing.IndexLocation;
 public class SynonymIndexDeleteJob extends AbstractUpdateCheckerJob {
 
 	/**
+	 * static LOG4j {@link Logger} to LOG errors and debug.
+	 */
+	private static final Logger LOG = Logger.getLogger(SynonymIndexDeleteJob.class);
+
+	/**
 	 * The SynonymIndexExtension as a attribute.
 	 */
 	private SynonymIndexExtension synonym;
@@ -31,10 +36,8 @@ public class SynonymIndexDeleteJob extends AbstractUpdateCheckerJob {
 	 * @param indexLoc indexLocation
 	 * @param synonym the {@link com.gentics.cr.lucene.didyoumean.SynonymIndexExtension} to clear
 	 */
-	public SynonymIndexDeleteJob(final CRConfig config, final IndexLocation indexLoc,
-			SynonymIndexExtension synonym) {
+	public SynonymIndexDeleteJob(final CRConfig config, final IndexLocation indexLoc, SynonymIndexExtension synonym) {
 		super(config, indexLoc, null);
-		log = Logger.getLogger(SynonymIndexDeleteJob.class);
 
 		this.identifyer = identifyer.concat(":clear");
 		this.synonym = synonym;
@@ -50,26 +53,26 @@ public class SynonymIndexDeleteJob extends AbstractUpdateCheckerJob {
 	 */
 	@Override
 	protected final void indexCR(final IndexLocation indexLocation, final CRConfigUtil config) throws CRException {
-		log.debug("Starting to clear Extension-index.");
-		
+		LOG.debug("Starting to clear Extension-index.");
+
 		IndexAccessor accessor = null;
 		IndexWriter writer = null;
 		try {
 			accessor = synonym.getSynonymLocation().getAccessor();
 			writer = accessor.getWriter();
 			writer.deleteAll();
-			writer.commit();			
+			writer.commit();
 			indexLocation.createReopenFile();
 			synonym.getSynonymLocation().resetIndexJobCreationTimes();
 		} catch (IOException e) {
-			log.error("Could not clear extension-index", e);
+			LOG.error("Could not clear extension-index", e);
 		} finally {
 			if (accessor != null && writer != null) {
 				accessor.release(writer);
 			}
 		}
-		
-		log.debug("Finished clearing Extension-index.");
+
+		LOG.debug("Finished clearing Extension-index.");
 
 	}
 

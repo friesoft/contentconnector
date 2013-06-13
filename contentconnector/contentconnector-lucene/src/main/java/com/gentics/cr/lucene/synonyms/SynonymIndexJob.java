@@ -32,17 +32,17 @@ public class SynonymIndexJob extends AbstractUpdateCheckerJob {
 	 * Reference to the SynonymIndexExtension.
 	 */
 	private SynonymIndexExtension synonym;
-	
+
 	/**
 	 * Config-Key for Rule in Config.
 	 */
 	private static final String RULE_KEY = "rule";
-	
+
 	/**
 	 * Config-Key for Deskriptor in Config-File.
 	 */
 	public static final String DESCRIPTOR_NAME_KEY = "descriptorColumnName";
-	
+
 	/**
 	 * Config-Key for Synonym in Config-File.
 	 */
@@ -52,6 +52,11 @@ public class SynonymIndexJob extends AbstractUpdateCheckerJob {
 	 * The RequestProcessor as attribute.
 	 */
 	private RequestProcessor rp = null;
+
+	/**
+	 * static LOG4j {@link Logger} to LOG errors and debug.
+	 */
+	private static final Logger LOG = Logger.getLogger(SynonymIndexJob.class);
 
 	/**
 	 * Constructor.
@@ -64,13 +69,12 @@ public class SynonymIndexJob extends AbstractUpdateCheckerJob {
 		super(updateCheckerConfig, indexLoc, null);
 
 		this.identifyer = identifyer.concat(":reIndex");
-		log = Logger.getLogger(SynonymIndexJob.class);
 		this.synonym = synonym;
 
 		try {
 			rp = config.getNewRequestProcessorInstance(1);
 		} catch (CRException e) {
-			log.error("Could not create RequestProcessor instance." + config.getName(), e);
+			LOG.error("Could not create RequestProcessor instance." + config.getName(), e);
 		}
 	}
 
@@ -95,9 +99,9 @@ public class SynonymIndexJob extends AbstractUpdateCheckerJob {
 	 */
 	private synchronized void reIndex() throws IOException {
 		UseCase ucReIndex = MonitorFactory.startUseCase("reIndex()");
-		
+
 		// build a dictionary (from the spell package)
-		log.debug("Starting to reindex SYN index.");
+		LOG.debug("Starting to reindex SYN index.");
 		IndexAccessor synonymAccessor = synonym.getSynonymLocation().getAccessor();
 
 		IndexWriter synonymWriter = synonymAccessor.getWriter();
@@ -116,28 +120,25 @@ public class SynonymIndexJob extends AbstractUpdateCheckerJob {
 				rule = "1 == 1";
 			}
 
-
 			try {
 				CRRequest req = new CRRequest();
 				req.setRequestFilter(rule);
 				status.setCurrentStatusString("SYN Get objects to update " + "in the index ...");
 				objectsToIndex = getObjectsToUpdate(req, rp, true, null);
 			} catch (Exception e) {
-				log.error("ERROR while cleaning SYN index", e);
+				LOG.error("ERROR while cleaning SYN index", e);
 			}
 
-
 			if (objectsToIndex == null) {
-				log.debug("SYN Rule returned no objects to index. Skipping...");
+				LOG.debug("SYN Rule returned no objects to index. Skipping...");
 				return;
 			}
 
 			status.setObjectCount(objectsToIndex.size());
-			log.debug("SYN index job with " + objectsToIndex.size() + " objects to index.");
+			LOG.debug("SYN index job with " + objectsToIndex.size() + " objects to index.");
 
 			String descriptorName = (String) config.get(DESCRIPTOR_NAME_KEY);
 			String synonymName = (String) config.get(SYNONYM_NAME_KEY);
-
 
 			status.setCurrentStatusString("Starting to index slices.");
 			int objCount = 0;
@@ -157,19 +158,19 @@ public class SynonymIndexJob extends AbstractUpdateCheckerJob {
 						doc.add(new Field("Deskriptor", descriptorValue, Field.Store.YES, Field.Index.NOT_ANALYZED));
 						doc.add(new Field("Synonym", synonymValue, Field.Store.YES, Field.Index.NOT_ANALYZED));
 						synonymWriter.addDocument(doc);
-						log.debug("WRITE SYN " + objCount + " " + descriptorValue + " " + synonymValue);
+						LOG.debug("WRITE SYN " + objCount + " " + descriptorValue + " " + synonymValue);
 						synonymWriter.commit();
-						log.debug("Number of actual Synonym: " + synonymWriter.numDocs());
+						LOG.debug("Number of actual Synonym: " + synonymWriter.numDocs());
 					}
 				}
 			} finally {
 				// if documents where added to the index create a reopen file and
 				// optimize the writer
-				log.debug("Number of indexed Synonyms finished: " + synonymWriter.numDocs());
+				LOG.debug("Number of indexed Synonyms finished: " + synonymWriter.numDocs());
 				synonymAccessor.release(synonymWriter);
 			}
-	
-			log.debug("Finished reindexing synonym index.");
+
+			LOG.debug("Finished reindexing synonym index.");
 			ucReIndex.stop();
 		} catch (Exception e) {
 			e.printStackTrace();

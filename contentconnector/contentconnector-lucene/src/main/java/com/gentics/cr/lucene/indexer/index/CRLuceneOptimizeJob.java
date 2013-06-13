@@ -15,16 +15,19 @@ import com.gentics.cr.util.indexing.IndexLocation;
 
 public class CRLuceneOptimizeJob extends AbstractUpdateCheckerJob {
 
+	/**
+	 * static LOG4j {@link Logger} to LOG errors and debug.
+	 */
+	private static final Logger LOG = Logger.getLogger(CRLuceneOptimizeJob.class);
+
 	public CRLuceneOptimizeJob(CRConfig config, IndexLocation indexLoc, ConcurrentHashMap<String, CRConfigUtil> configmap) {
 		super(config, indexLoc, configmap);
-		log = Logger.getLogger(CRLuceneOptimizeJob.class);
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override
 	protected final void indexCR(final IndexLocation indexLocation, final CRConfigUtil config) throws CRException {
 		if (indexLocation instanceof LuceneIndexLocation) {
-			log.debug("Starting to optimize index.");
+			LOG.debug("Starting to optimize index.");
 			LuceneIndexLocation luceneIndexLoccation = (LuceneIndexLocation) indexLocation;
 			IndexAccessor ia = luceneIndexLoccation.getAccessor();
 			IndexWriter writer = null;
@@ -32,13 +35,13 @@ public class CRLuceneOptimizeJob extends AbstractUpdateCheckerJob {
 				writer = ia.getWriter();
 				writer.optimize();
 			} catch (IOException e) {
-				log.error("Optimize index.", e);
+				LOG.error("Optimize index.", e);
 			} finally {
 				ia.release(writer);
 			}
-			log.debug("Finished optimizing index.");
+			LOG.debug("Finished optimizing index.");
 		} else {
-			log.error("Index does not seem to be a Lucene index. Therfore no " + "optimizing will be done.");
+			LOG.error("Index does not seem to be a Lucene index. Therfore no " + "optimizing will be done.");
 		}
 	}
 

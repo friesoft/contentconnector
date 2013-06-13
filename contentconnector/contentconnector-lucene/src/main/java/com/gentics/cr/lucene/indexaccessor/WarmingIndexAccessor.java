@@ -65,7 +65,7 @@ class WarmingIndexAccessor extends DefaultIndexAccessor {
 		// System.out.println("wait for warming s's:" + numSearchersForRetirment);
 
 		retireSearchers();
-		while (numSearchersForRetirment > 0) {
+		while (numSearchersForRetirement > 0) {
 
 			try {
 				wait();
@@ -105,8 +105,8 @@ class WarmingIndexAccessor extends DefaultIndexAccessor {
 					createdSearchers.add(newSearcher);
 					newSearcher.setSimilarity(oldSearcher.getSimilarity());
 					SearcherWarmer warmer = new SearcherWarmer(oldSearcher, newSearcher);
-					numSearchersForRetirment++;
-					numSearchersForRetirment++;
+					numSearchersForRetirement++;
+					numSearchersForRetirement++;
 					pool.execute(warmer);
 
 				}
@@ -132,7 +132,7 @@ class WarmingIndexAccessor extends DefaultIndexAccessor {
 			} catch (IOException e) {
 				LOGGER.error("error closing cached Searcher", e);
 			}
-			numSearchersForRetirment--;
+			numSearchersForRetirement--;
 		}
 		retiredSearchers.clear();
 

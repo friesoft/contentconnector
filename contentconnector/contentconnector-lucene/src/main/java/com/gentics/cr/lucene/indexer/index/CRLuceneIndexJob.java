@@ -57,7 +57,7 @@ import com.gentics.cr.util.indexing.IndexLocation;
  */
 public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 	/**
-	 * static log4j {@link Logger} to log errors and debug.
+	 * static LOG4j {@link Logger} to LOG errors and debug.
 	 */
 	private static final Logger LOG = Logger.getLogger(CRLuceneIndexJob.class);
 
@@ -82,8 +82,9 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 	 * indicates the maximum amount of segments (files) used storing the index.
 	 */
 	private String maxSegmentsString = null;
+
 	/**
-	 * indicates if facets are activated
+	 * indicates if facets are activated.
 	 */
 	private boolean useFacets = false;
 
@@ -107,7 +108,7 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 		try {
 			rp = config.getNewRequestProcessorInstance(1);
 		} catch (CRException e) {
-			log.error("Could not create RequestProcessor instance." + config.getName(), e);
+			LOG.error("Could not create RequestProcessor instance." + config.getName(), e);
 		}
 
 		String timestampattributeString = config.getString(TIMESTAMP_ATTR_KEY);
@@ -234,7 +235,7 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 					boostvalue.put(t[0], Float.parseFloat(t[1]));
 				}
 			} catch (Exception e) {
-				log.error("Could not create boostvalues. Check your config! (" + booststring + ")", e);
+				LOG.error("Could not create boostvalues. Check your config! (" + booststring + ")", e);
 			}
 		}
 	}
@@ -247,11 +248,13 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 	 */
 	@SuppressWarnings("unchecked")
 	protected void indexCR(final IndexLocation indexLocation, final CRConfigUtil config) throws CRException {
-
 		String crid = config.getName();
 		if (crid == null) {
 			crid = this.identifyer;
 		}
+
+		LOG.debug("indexCR: " + crid);
+
 		fillBoostValues(config.getString(BOOSTED_ATTRIBUTES_KEY));
 
 		IndexAccessor indexAccessor = null;
@@ -281,7 +284,7 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 					try {
 						crBatchSize = Integer.parseInt(bsString);
 					} catch (NumberFormatException e) {
-						log.error("The configured " + BATCH_SIZE_KEY + " for the Current CR" + " did not contain a parsable integer. ", e);
+						LOG.error("The configured " + BATCH_SIZE_KEY + " for the Current CR" + " did not contain a parsable integer. ", e);
 					}
 				}
 
@@ -303,13 +306,13 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 
 				if (indexLocation.isContainingIndex()) {
 					create = false;
-					log.debug("Index already exists.");
+					LOG.debug("Index already exists.");
 				}
 				if (indexLocation instanceof LuceneIndexLocation) {
 					luceneIndexUpdateChecker = new LuceneIndexUpdateChecker((LuceneIndexLocation) indexLocation, CR_FIELD_KEY, crid,
 							idAttribute);
 				} else {
-					log.error("IndexLocation is not created for Lucene. " + "Using the " + CRLuceneIndexJob.class.getName()
+					LOG.error("IndexLocation is not created for Lucene. " + "Using the " + CRLuceneIndexJob.class.getName()
 							+ " requires that you use the " + LuceneIndexLocation.class.getName()
 							+ ". You can configure another Job by setting the " + IndexLocation.UPDATEJOBCLASS_KEY + " key in your config.");
 					throw new CRException(new CRError("Error", "IndexLocation is not created for Lucene."));
@@ -317,7 +320,7 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 				Collection<CRResolvableBean> objectsToIndex = null;
 				//Clear Index and remove stale Documents
 				//if (!create) {
-				log.debug("Will do differential index.");
+				LOG.debug("Will do differential index.");
 				try {
 					CRRequest req = new CRRequest();
 					req.setRequestFilter(rule);
@@ -325,7 +328,7 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 					status.setCurrentStatusString("Get objects to update " + "in the index ...");
 					objectsToIndex = getObjectsToUpdate(req, rp, false, luceneIndexUpdateChecker);
 				} catch (Exception e) {
-					log.error("ERROR while cleaning index", e);
+					LOG.error("ERROR while cleaning index", e);
 				}
 				//}
 				//Obtain accessor and writer after clean
@@ -339,12 +342,12 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 						taxonomyWriter = taxonomyAccessor.getTaxonomyWriter();
 					}
 				} else {
-					log.error("IndexLocation is not created for Lucene. " + "Using the " + CRLuceneIndexJob.class.getName()
+					LOG.error("IndexLocation is not created for Lucene. " + "Using the " + CRLuceneIndexJob.class.getName()
 							+ " requires that you use the " + LuceneIndexLocation.class.getName()
 							+ ". You can configure another Job by setting the " + IndexLocation.UPDATEJOBCLASS_KEY + " key in your config.");
 					throw new CRException(new CRError("Error", "IndexLocation is not created for Lucene."));
 				}
-				log.debug("Using rule: " + rule);
+				LOG.debug("Using rule: " + rule);
 				// prepare the map of indexed/stored attributes
 				Map<String, Boolean> attributes = new HashMap<String, Boolean>();
 				List<String> containedAttributes = IndexerUtil.getListFromString(config.getString(CONTAINED_ATTRIBUTES_KEY), ",");
@@ -363,12 +366,12 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 				attributes.put(idAttribute, Boolean.TRUE);
 
 				if (objectsToIndex == null) {
-					log.debug("Rule returned no objects to index. Skipping...");
+					LOG.debug("Rule returned no objects to index. Skipping...");
 					return;
 				}
 
 				status.setObjectCount(objectsToIndex.size());
-				log.debug(" index job with " + objectsToIndex.size() + " objects to index.");
+				LOG.debug(" index job with " + objectsToIndex.size() + " objects to index.");
 				// now get the first batch of objects from the collection
 				// (remove them from the original collection) and index them
 				slice = new Vector(crBatchSize);
@@ -387,7 +390,7 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 					}
 					if (sliceCounter == crBatchSize) {
 						// index the current slice
-						log.debug("Indexing slice with " + slice.size() + " objects.");
+						LOG.debug("Indexing slice with " + slice.size() + " objects.");
 						indexSlice(
 							crid,
 							indexWriter,
@@ -427,7 +430,7 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 					// Only Optimize the Index if the thread 
 					// has not been interrupted
 					if (optimize) {
-						log.debug("Executing optimize command.");
+						LOG.debug("Executing optimize command.");
 						UseCase uc = MonitorFactory.startUseCase("optimize(" + crid + ")");
 						try {
 							indexWriter.optimize();
@@ -435,7 +438,7 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 							uc.stop();
 						}
 					} else if (maxSegmentsString != null) {
-						log.debug("Executing optimize command with max" + " segments: " + maxSegmentsString);
+						LOG.debug("Executing optimize command with max" + " segments: " + maxSegmentsString);
 						int maxs = Integer.parseInt(maxSegmentsString);
 						UseCase uc = MonitorFactory.startUseCase("optimize(" + crid + ")");
 						try {
@@ -445,23 +448,23 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 						}
 					}
 				} else {
-					log.debug("Job has been interrupted and will now be closed." + " Missing objects " + "will be reindexed next run.");
+					LOG.debug("Job has been interrupted and will now be closed." + " Missing objects " + "will be reindexed next run.");
 				}
 				finishedIndexJobSuccessfull = true;
 			} catch (Exception ex) {
-				log.error("Could not complete index run... indexed Objects: " + status.getObjectsDone()
+				LOG.error("Could not complete index run... indexed Objects: " + status.getObjectsDone()
 						+ ", trying to close index and remove lock.", ex);
 				finishedIndexJobWithError = true;
 				status.setError("Could not complete index run... indexed " + "Objects: " + status.getObjectsDone()
 						+ ", trying to close index and remove lock.");
 			} finally {
 				if (!finishedIndexJobSuccessfull && !finishedIndexJobWithError) {
-					log.fatal("There seems to be a run time exception from this" + " index job.\nLast slice was: " + slice);
+					LOG.fatal("There seems to be a run time exception from this" + " index job.\nLast slice was: " + slice);
 				}
 				//Set status for job if it was not locked
 				status.setCurrentStatusString("Finished job.");
 				int objectCount = status.getObjectsDone();
-				log.debug("Indexed " + objectCount + " objects...");
+				LOG.debug("Indexed " + objectCount + " objects...");
 
 				if (objectCount > 0) {
 					indexLocation.createReopenFile();
@@ -483,13 +486,13 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 				ucFireEvent.stop();
 			}
 		} catch (LockedIndexException ex) {
-			log.debug("LOCKED INDEX DETECTED. TRYING AGAIN IN NEXT JOB.");
+			LOG.debug("LOCKED INDEX DETECTED. TRYING AGAIN IN NEXT JOB.");
 			if (this.indexLocation != null && !this.indexLocation.hasLockDetection()) {
-				log.error("IT SEEMS THAT THE INDEX HAS UNEXPECTEDLY BEEN " + "LOCKED. TRYING TO REMOVE THE LOCK", ex);
+				LOG.error("IT SEEMS THAT THE INDEX HAS UNEXPECTEDLY BEEN " + "LOCKED. TRYING TO REMOVE THE LOCK", ex);
 				((LuceneIndexLocation) this.indexLocation).forceRemoveLock();
 			}
 		} catch (Exception ex) {
-			log.debug("ERROR WHILE CHECKING LOCK", ex);
+			LOG.debug("ERROR WHILE CHECKING LOCK", ex);
 		}
 	}
 
@@ -550,7 +553,7 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 								}
 							} catch (Exception e) {
 								//TODO Remember broken files
-								log.error("Error while Transforming Contentbean" + "with id: " + bean.get(idAttribute) + " Transformer: "
+								LOG.error("Error while Transforming Contentbean" + "with id: " + bean.get(idAttribute) + " Transformer: "
 										+ transformer.getTransformerKey() + " " + transformer.getClass().getName(), e);
 							}
 						}
@@ -588,6 +591,7 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 				if (Thread.currentThread().isInterrupted()) {
 					break;
 				}
+				LOG.debug(crid + " - Indexed object: " + bean.getString(idAttribute));
 				this.status.setObjectsDone(this.status.getObjectsDone() + 1);
 			}
 		} catch (Exception e) {
@@ -615,7 +619,7 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 				}
 			}
 		} catch (IOException e) {
-			log.error("An error happend while fetching the document in the index.", e);
+			LOG.error("An error happend while fetching the document in the index.", e);
 		}
 		return null;
 	}
@@ -651,7 +655,7 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 		if (!"".equals(timestampattribute)) {
 			Object updateTimestampObject = resolvable.get(timestampattribute);
 			if (updateTimestampObject == null) {
-				log.error("Indexing with an updateattribute (" + timestampattribute + ") has been configured but the attribute is "
+				LOG.error("Indexing with an updateattribute (" + timestampattribute + ") has been configured but the attribute is "
 						+ "not available in the current indexed object." + "If using the SQLRequestProcesser, remember to "
 						+ "configure the updateattribute column also in the " + "'columns' configuration parameter.");
 
@@ -728,7 +732,7 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 
 	/**
 	 * Maps the attributes of a {@link CRResolvableBean} to a List of
-	 * {@link CategoryPath} for the taxonomy
+	 * {@link CategoryPath} for the taxonomy.
 	 * 
 	 * @param bean
 	 *            contains the resolvable bean which is to be mapped
@@ -768,13 +772,13 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 					String[] strarr = (String[]) components.toArray(new String[components.size()]);
 					categories.add(new CategoryPath(strarr));
 
-					if (log.isDebugEnabled()) {
+					if (LOG.isDebugEnabled()) {
 						StringBuilder path = new StringBuilder();
 						for (int i = 0; i < strarr.length; i++) {
 							path = path.append(strarr[i]);
 							path = path.append("/");
 						}
-						log.debug("Added CategoryPath for the category: " + components.get(0) + " and the path: " + path.toString());
+						LOG.debug("Added CategoryPath for the category: " + components.get(0) + " and the path: " + path.toString());
 
 					}
 				}

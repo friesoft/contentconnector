@@ -20,33 +20,42 @@ import com.gentics.cr.exceptions.CRException;
 import com.gentics.cr.util.generics.Lists;
 
 /**
- * {@link SQLRequestProcessor} fetches data from a mysql table
+ * {@link SQLRequestProcessor} fetches data from a mysql table.
  * @author bigbear3001
  *
  */
 public class SQLRequestProcessor extends RequestProcessor {
+
+	/**
+	 * log4j logger.
+	 */
 	private static Logger logger = Logger.getLogger(SQLRequestProcessor.class);
 
 	/**
 	 * configuration key for the datasource driver class.
 	 */
 	private static final String DSHDRIVERCLASS_KEY = "driverClass";
+
 	/**
 	 * configuration key for the datasource url.
 	 */
 	private static final String DSHURL_KEY = "url";
+
 	/**
 	 * configuration key for the table name.
 	 */
 	private static final String TABLEATTRIBUTE_KEY = "table";
+
 	/**
 	 * configuration key for the column names.
 	 */
 	private static final String COLUMNATTRIBUTE_KEY = "columns";
+
 	/**
 	 * configuration key for the column containing the id.
 	 */
 	private static final String IDCOLUMN_KEY = "idcolumn";
+
 	/**
 	 * Configuration key for the merge feature (multiple rows with the same id
 	 * are merged into one result).
@@ -68,11 +77,11 @@ public class SQLRequestProcessor extends RequestProcessor {
 	private boolean mergeOnIdColumn = false;
 
 	/**
-	* Create a new instance of SQLRequestProcessor
+	* Create a new instance of SQLRequestProcessor.
 	* @param config
 	* @throws CRException
 	*/
-	public SQLRequestProcessor(CRConfig config) throws CRException {
+	public SQLRequestProcessor(final CRConfig config) throws CRException {
 		super(config);
 
 		Properties dshprop = ((CRConfigUtil) config).getDatasourceHandleProperties();
@@ -94,10 +103,16 @@ public class SQLRequestProcessor extends RequestProcessor {
 
 	private static final Pattern CONTAINSONEOFPATTERN = Pattern.compile("object\\.([a-zA-Z0-9_]*)[ ]*CONTAINSONEOF[ ]*\\[(.*)\\]");
 
-	private String translate(String requestFilter) {
-		//TANSLATE CONTAINSONEOF
-		Matcher matcher = CONTAINSONEOFPATTERN.matcher(requestFilter);
+	/**
+	 * 
+	 * @param requestFilter
+	 * @return
+	 */
+	private String translate(final String requestFilter) {
+		String filter = requestFilter;
 
+		//TANSLATE CONTAINSONEOF
+		Matcher matcher = CONTAINSONEOFPATTERN.matcher(filter);
 		StringBuffer buf = new StringBuffer();
 		while (matcher.find()) {
 			String attrib = matcher.group(1);
@@ -105,12 +120,18 @@ public class SQLRequestProcessor extends RequestProcessor {
 			matcher.appendReplacement(buf, attrib + " IN (" + group + ")");
 		}
 		matcher.appendTail(buf);
-		requestFilter = buf.toString();
+		filter = buf.toString();
 
-		return requestFilter.replaceAll("==", "=").replaceAll("\"", "'");
+		return filter.replaceAll("==", "=").replaceAll("\"", "'");
 	}
 
-	private String getStatement(String requestFilter, String[] attributes) {
+	/**
+	 * 
+	 * @param requestFilter
+	 * @param attributes
+	 * @return
+	 */
+	private String getStatement(final String requestFilter, final String[] attributes) {
 		StringBuilder statement = new StringBuilder();
 		if (attributes == null || attributes.length == 0 || columns.length == 0) {
 			statement.append("*");
@@ -132,15 +153,14 @@ public class SQLRequestProcessor extends RequestProcessor {
 	}
 
 	/**
-	*
-	* getObjects 
+	* getObjects. 
 	* @param request CRRequest
 	* @param doNavigation boolean
 	* @return resulting objects
-	* @throws CRException
+	* @throws CRException 
 	*/
 	@Override
-	public Collection<CRResolvableBean> getObjects(CRRequest request, boolean doNavigation) throws CRException {
+	public Collection<CRResolvableBean> getObjects(final CRRequest request, final boolean doNavigation) throws CRException {
 		ArrayList<CRResolvableBean> result = new ArrayList<CRResolvableBean>();
 
 		Statement stmt = null;

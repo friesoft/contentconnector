@@ -31,19 +31,22 @@ import com.gentics.cr.util.indexing.IndexLocation;
  */
 public class AutocompleteIndexJob extends AbstractUpdateCheckerJob implements AutocompleteConfigurationKeys {
 
+	/**
+	 * static LOG4j {@link Logger} to LOG errors and debug.
+	 */
+	private static final Logger LOG = Logger.getLogger(AutocompleteIndexJob.class);
+
 	private AutocompleteIndexExtension autocompleter;
 
-	public AutocompleteIndexJob(CRConfig updateCheckerConfig, IndexLocation indexLoc,
-		AutocompleteIndexExtension autocompleter) {
+	public AutocompleteIndexJob(CRConfig updateCheckerConfig, IndexLocation indexLoc, AutocompleteIndexExtension autocompleter) {
 		super(updateCheckerConfig, indexLoc, null);
 
 		this.identifyer = identifyer.concat(":reIndex");
-		log = Logger.getLogger(AutocompleteIndexJob.class);
 		this.autocompleter = autocompleter;
 	}
 
 	/**
-	 * starts the job - is called by the IndexJobQueue
+	 * starts the job - is called by the IndexJobQueue.
 	 */
 	@Override
 	protected void indexCR(IndexLocation indexLocation, CRConfigUtil config) throws CRException {
@@ -58,7 +61,7 @@ public class AutocompleteIndexJob extends AbstractUpdateCheckerJob implements Au
 	private synchronized void reIndex() throws IOException {
 		UseCase ucReIndex = MonitorFactory.startUseCase("reIndex()");
 		// build a dictionary (from the spell package)
-		log.debug("Starting to reindex autocomplete index.");
+		LOG.debug("Starting to reindex autocomplete index.");
 
 		LuceneIndexLocation source = this.autocompleter.getSource();
 		LuceneIndexLocation autocompleteLocation = this.autocompleter.getAutocompleteLocation();
@@ -101,8 +104,7 @@ public class AutocompleteIndexJob extends AbstractUpdateCheckerJob implements Au
 				Document doc = new Document();
 				doc.add(new Field(SOURCE_WORD_FIELD, word, Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS)); // orig term
 				doc.add(new Field(GRAMMED_WORDS_FIELD, word, Field.Store.YES, Field.Index.ANALYZED)); // grammed
-				doc.add(new Field(COUNT_FIELD, Integer.toString(wordsMap.get(word)), Field.Store.YES,
-						Field.Index.NOT_ANALYZED_NO_NORMS)); // count
+				doc.add(new Field(COUNT_FIELD, Integer.toString(wordsMap.get(word)), Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS)); // count
 				writer.addDocument(doc);
 			}
 			writer.optimize();
@@ -115,7 +117,7 @@ public class AutocompleteIndexJob extends AbstractUpdateCheckerJob implements Au
 			aia.release(writer);
 			// aia.release(reader,false);
 		}
-		log.debug("Finished reindexing autocomplete index.");
+		LOG.debug("Finished reindexing autocomplete index.");
 		ucReIndex.stop();
 	}
 

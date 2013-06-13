@@ -24,6 +24,11 @@ public class AutocompleteIndexDeleteJob extends AbstractUpdateCheckerJob {
 	private AutocompleteIndexExtension autocompleter;
 
 	/**
+	 * static LOG4j {@link Logger} to LOG errors and debug.
+	 */
+	private static final Logger LOG = Logger.getLogger(AutocompleteIndexDeleteJob.class);
+
+	/**
 	 * Constructor.
 	 * 
 	 * @param config
@@ -33,22 +38,20 @@ public class AutocompleteIndexDeleteJob extends AbstractUpdateCheckerJob {
 	 * @param autocompleter
 	 *            the {@link AutocompleteIndexExtension} to clear
 	 */
-	public AutocompleteIndexDeleteJob(final CRConfig config, final IndexLocation indexLoc,
-		AutocompleteIndexExtension autocompleter) {
+	public AutocompleteIndexDeleteJob(final CRConfig config, final IndexLocation indexLoc, AutocompleteIndexExtension autocompleter) {
 		super(config, indexLoc, null);
-		log = Logger.getLogger(AutocompleteIndexDeleteJob.class);
 
 		this.identifyer = identifyer.concat(":clear");
 		this.autocompleter = autocompleter;
 	}
 
 	/**
-	 * starts the job - is called by the IndexJobQueue
+	 * starts the job - is called by the IndexJobQueue.
 	 */
 	@Override
 	protected final void indexCR(final IndexLocation indexLocation, final CRConfigUtil config) throws CRException {
 
-		log.debug("Starting to clear index.");
+		LOG.debug("Starting to clear index.");
 		LuceneIndexLocation autocompleteLocation = autocompleter.getAutocompleteLocation();
 		IndexAccessor ia = autocompleteLocation.getAccessor();
 		IndexWriter writer = null;
@@ -58,11 +61,11 @@ public class AutocompleteIndexDeleteJob extends AbstractUpdateCheckerJob {
 			autocompleteLocation.resetIndexJobCreationTimes();
 			autocompleteLocation.createReopenFile();
 		} catch (IOException e) {
-			log.error("Could not clear index", e);
+			LOG.error("Could not clear index", e);
 		} finally {
 			ia.release(writer);
 		}
-		log.debug("Finished clearing index.");
+		LOG.debug("Finished clearing index.");
 
 	}
 

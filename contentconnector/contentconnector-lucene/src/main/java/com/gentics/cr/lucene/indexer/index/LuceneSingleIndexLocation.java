@@ -269,7 +269,7 @@ public class LuceneSingleIndexLocation extends LuceneIndexLocation implements Ta
 	}
 
 	/**
-	 * creates the location for the taxonomy from the config
+	 * creates the location for the taxonomy from the config.
 	 *  
 	 * @param config
 	 * @return
@@ -280,7 +280,7 @@ public class LuceneSingleIndexLocation extends LuceneIndexLocation implements Ta
 	}
 
 	/**
-	 * retrieves the Taxonomy location from the config
+	 * retrieves the Taxonomy location from the config.
 	 * 
 	 * @param config
 	 * @return
@@ -291,7 +291,7 @@ public class LuceneSingleIndexLocation extends LuceneIndexLocation implements Ta
 	}
 
 	/**
-	 * checks if facets are activated
+	 * checks if facets are activated.
 	 * 
 	 * @return
 	 */

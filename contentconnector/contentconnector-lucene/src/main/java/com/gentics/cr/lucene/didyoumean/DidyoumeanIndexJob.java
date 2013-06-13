@@ -22,13 +22,17 @@ import com.gentics.cr.util.indexing.IndexLocation;
  */
 public class DidyoumeanIndexJob extends AbstractUpdateCheckerJob {
 
+	/**
+	 * static LOG4j {@link Logger} to LOG errors and debug.
+	 */
+	private static final Logger LOG = Logger.getLogger(DidyoumeanIndexJob.class);
+
 	private DidyoumeanIndexExtension didyoumean;
 
 	public DidyoumeanIndexJob(CRConfig updateCheckerConfig, IndexLocation indexLoc, DidyoumeanIndexExtension didyoumean) {
 		super(updateCheckerConfig, indexLoc, null);
 
 		this.identifyer = identifyer.concat(":reIndex");
-		log = Logger.getLogger(DidyoumeanIndexJob.class);
 		this.didyoumean = didyoumean;
 	}
 
@@ -48,7 +52,7 @@ public class DidyoumeanIndexJob extends AbstractUpdateCheckerJob {
 	private synchronized void reIndex() throws IOException {
 		UseCase ucReIndex = MonitorFactory.startUseCase("reIndex()");
 		// build a dictionary (from the spell package)
-		log.debug("Starting to reindex didyoumean index.");
+		LOG.debug("Starting to reindex didyoumean index.");
 		IndexAccessor sourceAccessor = didyoumean.getSourceLocation().getAccessor();
 		IndexReader sourceReader = sourceAccessor.getReader(false);
 		CustomSpellChecker spellchecker = didyoumean.getSpellchecker();
@@ -69,7 +73,7 @@ public class DidyoumeanIndexJob extends AbstractUpdateCheckerJob {
 				sourceAccessor.release(sourceReader, false);
 			}
 		}
-		log.debug("Finished reindexing didyoumean index.");
+		LOG.debug("Finished reindexing didyoumean index.");
 		ucReIndex.stop();
 	}
 

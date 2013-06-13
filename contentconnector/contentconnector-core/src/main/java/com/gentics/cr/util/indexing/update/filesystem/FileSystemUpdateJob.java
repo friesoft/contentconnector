@@ -34,7 +34,7 @@ public class FileSystemUpdateJob extends AbstractUpdateCheckerJob {
 	 * log4j logger for error and debug messages.
 	 */
 	private static final Logger LOGGER = Logger.getLogger(FileSystemUpdateJob.class);
-	
+
 	/**
 	 * directory to put the files in.
 	 */
@@ -55,14 +55,14 @@ public class FileSystemUpdateJob extends AbstractUpdateCheckerJob {
 	 * @throws FileNotFoundException in case the directory doesn't exist and creation of the directory is 
 	 * deactivated or the directory cannot be created.
 	 */
-	public FileSystemUpdateJob(CRConfig config, IndexLocation indexLoc,
-			ConcurrentHashMap<String, CRConfigUtil> updateCheckerConfigmap) throws FileNotFoundException {
+	public FileSystemUpdateJob(CRConfig config, IndexLocation indexLoc, ConcurrentHashMap<String, CRConfigUtil> updateCheckerConfigmap)
+		throws FileNotFoundException {
 		super(config, indexLoc, updateCheckerConfigmap);
 
 		try {
 			rp = config.getNewRequestProcessorInstance(1);
 		} catch (CRException e) {
-			log.error("Could not create RequestProcessor instance." + config.getName(), e);
+			LOGGER.error("Could not create RequestProcessor instance." + config.getName(), e);
 		}
 
 		indexUpdateChecker = new FileSystemUpdateChecker(config.getSubConfig("updatejob"));
@@ -161,24 +161,21 @@ public class FileSystemUpdateJob extends AbstractUpdateCheckerJob {
 	 * @param bean - bean for that the transformer should be 
 	 * @param transformerlist - list of transformers to execute on the bean
 	 */
-	private void applyTransformers(final CRResolvableBean bean,
-			final List<ContentTransformer> transformerlist) {
+	private void applyTransformers(final CRResolvableBean bean, final List<ContentTransformer> transformerlist) {
 		if (transformerlist != null) {
 			for (ContentTransformer transformer : transformerlist) {
 				try {
 
 					if (transformer.match(bean)) {
-						String msg = "TRANSFORMER: " + transformer.getTransformerKey() + "; BEAN: "
-								+ bean.get(idAttribute);
+						String msg = "TRANSFORMER: " + transformer.getTransformerKey() + "; BEAN: " + bean.get(idAttribute);
 						status.setCurrentStatusString(msg);
 						ContentTransformer.getLogger().debug(msg);
 						transformer.processBeanWithMonitoring(bean);
 					}
 				} catch (Exception e) {
 					//TODO Remember broken files
-					log.error("Error while Transforming Contentbean" + "with id: " + bean.get(idAttribute)
-							+ " Transformer: " + transformer.getTransformerKey() + " "
-							+ transformer.getClass().getName(), e);
+					LOGGER.error("Error while Transforming Contentbean" + "with id: " + bean.get(idAttribute) + " Transformer: "
+							+ transformer.getTransformerKey() + " " + transformer.getClass().getName(), e);
 				}
 			}
 		}
