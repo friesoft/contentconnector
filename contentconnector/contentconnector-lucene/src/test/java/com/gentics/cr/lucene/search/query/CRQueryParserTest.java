@@ -3,8 +3,13 @@ package com.gentics.cr.lucene.search.query;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.CharArraySet;
+import org.apache.lucene.analysis.PerFieldAnalyzerWrapper;
+import org.apache.lucene.analysis.WhitespaceAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.CorruptIndexException;
@@ -18,12 +23,18 @@ import com.gentics.cr.lucene.search.query.mocks.SimpleLucene;
 
 public class CRQueryParserTest extends AbstractLuceneTest {
 
-	public CRQueryParserTest(String name) {
+	public CRQueryParserTest(final String name) {
 		super(name);
 	}
 
-	private static final StandardAnalyzer STANDARD_ANALYZER = new StandardAnalyzer(LuceneVersion.getVersion(),
-			CharArraySet.EMPTY_SET);
+	private static final Map<String, Analyzer> FIELD_ANALYZERS = new HashMap<String, Analyzer>();
+	static {
+		FIELD_ANALYZERS.put("categoryId", new WhitespaceAnalyzer(LuceneVersion.getVersion()));
+	}
+
+	private static final PerFieldAnalyzerWrapper STANDARD_ANALYZER = new PerFieldAnalyzerWrapper(new StandardAnalyzer(
+			LuceneVersion.getVersion(),
+			CharArraySet.EMPTY_SET), FIELD_ANALYZERS);
 	private static final String[] SEARCHED_ATTRIBUTES = new String[] { SimpleLucene.CONTENT_ATTRIBUTE, "binarycontent" };
 	private CRQueryParser parser;
 	private CRRequest crRequest;
@@ -72,7 +83,9 @@ public class CRQueryParserTest extends AbstractLuceneTest {
 			"node_id:3"))); //04.05.2011 13:59:57
 		/* 8 */documents.add(new ComparableDocument(lucene.add(
 			SimpleLucene.CONTENT_ATTRIBUTE + ":newword 01/23456789",
-			"node_id:11")));
+ "node_id:11")));
+		/* 9 */documents.add(new ComparableDocument(lucene.add("categoryId:category-with-minus", SimpleLucene.CONTENT_ATTRIBUTE
+				+ ":content")));
 
 	}
 
@@ -91,6 +104,12 @@ public class CRQueryParserTest extends AbstractLuceneTest {
 	public void testSearchAttributes() throws ParseException, CorruptIndexException, IOException {
 		Collection<ComparableDocument> matchedDocuments = wrapComparable(lucene.find(parser.parse("word1")));
 		containsOnly(matchedDocuments, documents.get(0));
+	}
+
+	public void testCategoryAttribute() throws CorruptIndexException, IOException, ParseException {
+		parser = new CRQueryParser(LuceneVersion.getVersion(), SEARCHED_ATTRIBUTES, STANDARD_ANALYZER, crRequest);
+		Collection<ComparableDocument> matchedDocuments = wrapComparable(lucene.find(parser.parse("categoryId:category\\-with\\-minus")));
+		containsOnly(matchedDocuments, documents.get(9));
 	}
 
 	public void testWordMatchSub() throws ParseException, CorruptIndexException, IOException {
@@ -205,8 +224,13 @@ public class CRQueryParserTest extends AbstractLuceneTest {
 		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(3), documents.get(4) });
 	}
 
-	public void testMultipleEscapedMinus() throws CorruptIndexException, IOException, ParseException {
+	public void testMultipleMinus() throws CorruptIndexException, IOException, ParseException {
 		Collection<ComparableDocument> matchedDocuments = wrapComparable(lucene.find(parser.parse("with-minus-in-it")));
+		containsOnly(matchedDocuments, documents.get(3));
+	}
+
+	public void testMultipleEscapedMinus() throws CorruptIndexException, IOException, ParseException {
+		Collection<ComparableDocument> matchedDocuments = wrapComparable(lucene.find(parser.parse("with\\-minus\\-in\\-it")));
 		containsOnly(matchedDocuments, documents.get(3));
 	}
 
@@ -214,6 +238,13 @@ public class CRQueryParserTest extends AbstractLuceneTest {
 		crRequest.set(CRRequest.WORDMATCH_KEY, "sub");
 		parser = new CRQueryParser(LuceneVersion.getVersion(), SEARCHED_ATTRIBUTES, STANDARD_ANALYZER, crRequest);
 		Collection<ComparableDocument> matchedDocuments = wrapComparable(lucene.find(parser.parse("with\\-minusinit")));
+		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(3), documents.get(4) });
+	}
+
+	public void testEscapedMinusAndPrefixedSpecialCharactersWordMatch() throws CorruptIndexException, IOException, ParseException {
+		crRequest.set(CRRequest.WORDMATCH_KEY, "sub");
+		parser = new CRQueryParser(LuceneVersion.getVersion(), SEARCHED_ATTRIBUTES, STANDARD_ANALYZER, crRequest);
+		Collection<ComparableDocument> matchedDocuments = wrapComparable(lucene.find(parser.parse("\\-with\\-minusinit")));
 		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(3), documents.get(4) });
 	}
 
@@ -241,24 +272,20 @@ public class CRQueryParserTest extends AbstractLuceneTest {
 		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(8) });
 	}
 	
-	
-	
-	//TODO: these tests currently do not work because lucene recognizes numbers with commas different then words when indexing.
-	//CRQueryParser should account for that.
-//	public void testNumberWithComma() throws CorruptIndexException, IOException, ParseException {
-//		Collection<ComparableDocument> matchedDocuments = wrapComparable(lucene.find(parser.parse("4,500.66")));
-//		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(6) });
-//	}
-//	
-//	public void testNumberWithCommaAndWildcard() throws CorruptIndexException, IOException, ParseException {
-//		Collection<ComparableDocument> matchedDocuments = wrapComparable(lucene.find(parser.parse("4,500")));
-//		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(6) });
-//	}
-//	
-//	public void testNumberWithCommaAndWildcards() throws CorruptIndexException, IOException, ParseException {
-//		crRequest.set(CRRequest.WORDMATCH_KEY, "sub");
-//		parser = new CRQueryParser(LuceneVersion.getVersion(), SEARCHED_ATTRIBUTES, STANDARD_ANALYZER, crRequest);
-//		Collection<ComparableDocument> matchedDocuments = wrapComparable(lucene.find(parser.parse("4,5")));
-//		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(6) });
-//	}
+	public void testNumberWithComma() throws CorruptIndexException, IOException, ParseException {
+		Collection<ComparableDocument> matchedDocuments = wrapComparable(lucene.find(parser.parse("4,500.66")));
+		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(6) });
+	}
+
+	public void testNumberWithCommaAndWildcard() throws CorruptIndexException, IOException, ParseException {
+		Collection<ComparableDocument> matchedDocuments = wrapComparable(lucene.find(parser.parse("4,500*")));
+		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(6) });
+	}
+
+	public void testNumberWithCommaAndWildcards() throws CorruptIndexException, IOException, ParseException {
+		crRequest.set(CRRequest.WORDMATCH_KEY, "sub");
+		parser = new CRQueryParser(LuceneVersion.getVersion(), SEARCHED_ATTRIBUTES, STANDARD_ANALYZER, crRequest);
+		Collection<ComparableDocument> matchedDocuments = wrapComparable(lucene.find(parser.parse("4,5")));
+		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(6) });
+	}
 }

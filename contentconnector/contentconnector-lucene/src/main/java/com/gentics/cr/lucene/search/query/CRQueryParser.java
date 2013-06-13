@@ -35,9 +35,16 @@ public class CRQueryParser extends QueryParser {
 	private static final int THREE = 3;
 	
 	/**
-	 * Spezial Characters that cannot be searched (as they were removed in the index by the analyzer)
+	 * characters that cannot be search because they are removed (replaced by a space) by the analyser before writing to the index.
+	 * special characters are for now  , - / \
+	 * <br>do not add wildcard symbols here as that would remove them from the query in the default attributes
 	 */
-	private static final String SPEZIAL_CHARACTERS = ",-\\/";
+	private static final String SPECIAL_CHARACTERS = ",-\\/\\\\";
+
+	/**
+	 * Special characters that also separate numbers. The analyzer doesn't separate numbers with , or . in them.
+	 */
+	private static final String SPECIAL_CHARACTER_IN_NUMBERS = "-\\/\\\\";
 
 	/**
 	 * attributes to search in.
@@ -83,6 +90,7 @@ public class CRQueryParser extends QueryParser {
 	 * @return parsed lucene query
 	 * @throws ParseException when the query cannot be successfully parsed
 	 */
+	@Override
 	public Query parse(final String query) throws ParseException {
 		String crQuery = query;
 		LOGGER.debug("parsing query: " + crQuery);
@@ -102,7 +110,7 @@ public class CRQueryParser extends QueryParser {
 	 * @param crQuery - query to search for special characters
 	 * @return query with replaced special characters
 	 */
-	protected String replaceSpecialCharactersFromQuery(String crQuery) {
+	protected String replaceSpecialCharactersFromQuery(final String crQuery) {
 		StringBuffer newQuery = new StringBuffer();
 		Matcher valueMatcher = getValueMatcher(crQuery);
 		while (valueMatcher.find()) {
@@ -112,7 +120,7 @@ public class CRQueryParser extends QueryParser {
 			String charsAfterValue = valueMatcher.group(THREE);
 			if (!"AND".equalsIgnoreCase(valueWithAttribute) && !"OR".equalsIgnoreCase(valueWithAttribute)
 					&& !"NOT".equalsIgnoreCase(valueWithAttribute) && attributesToSearchIn.contains(attribute)) {
-				if (!valueWithAttribute.matches("[^:]+:\"[^\"]+\"") && valueWithAttribute.matches(".*[" + SPEZIAL_CHARACTERS + "].*")) {
+				if (!valueWithAttribute.matches("[^:]+:\"[^\"]+\"") && valueWithAttribute.matches(".*[" + SPECIAL_CHARACTERS + "].*")) {
 					String replacement = replaceSpecialCharactersInAttribute(charsBeforeValue, valueWithAttribute, attribute, charsAfterValue);
 					valueMatcher.appendReplacement(newQuery, Matcher.quoteReplacement(replacement));
 				}
@@ -122,15 +130,25 @@ public class CRQueryParser extends QueryParser {
 		return newQuery.toString();
 	}
 
+	/**
+	 * helper method to replace {@link #SPECIAL_CHARACTERS} in attribute and correcting for wildcards
+	 * @param charsBeforeValue - string before the value string (nothing replaced in here)
+	 * @param valueWithAttribute - value and attributename in the form attribute:value
+	 * @param attribute - attributename for easier replacing
+	 * @param charsAfterValue - string after the value (nothing replaced here)
+	 * @return charsBeforeValue + replaced valueWithAttribute + charsAfterValue
+	 */
 	protected String replaceSpecialCharactersInAttribute(final String charsBeforeValue,
 			final String valueWithAttribute, final String attribute, final String charsAfterValue) {
-		//remove spezial characters immediatly after or before wildcards as they would result in queryies like attribute:query +attribute:*
-		String cleanedValueWithAttribute = valueWithAttribute.replaceAll("[" + SPEZIAL_CHARACTERS + "]+(\\*)", "$1");
-		cleanedValueWithAttribute = cleanedValueWithAttribute.replaceAll("(" + attribute + ":\\*)[" + SPEZIAL_CHARACTERS + "]+", "$1");
+
+		//remove special characters immediatly after or before wildcards as they would result in queries like attribute:query +attribute:*
+		String cleanedValueWithAttribute = valueWithAttribute.replaceAll("[" + SPECIAL_CHARACTERS + "]+(\\*)", "$1");
+		cleanedValueWithAttribute = cleanedValueWithAttribute.replaceAll("(" + attribute + ":\\*)[" + SPECIAL_CHARACTERS + "]+", "$1");
 		
+		//replace content:s-train with content:s +content:train as the special characters cannot be searched in attributes indexed by the StandardAnalyzer
 		return charsBeforeValue + "("
-				+ cleanedValueWithAttribute.replaceAll("\\\\?[" + SPEZIAL_CHARACTERS + "]([^" + SPEZIAL_CHARACTERS + "]+)", " +"
-						+ attribute + ":$1") + ")" + charsAfterValue;
+				+ cleanedValueWithAttribute.replaceAll("\\\\?([^0-9][" + SPECIAL_CHARACTERS + "]|[0-9][" + SPECIAL_CHARACTER_IN_NUMBERS
+						+ "])([^" + SPECIAL_CHARACTERS + "]+)", " +" + attribute + ":$2") + ")" + charsAfterValue;
 	}
 
 	/**

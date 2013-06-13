@@ -3,9 +3,13 @@ package com.gentics.cr.lucene.search.query.mocks;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.CharArraySet;
+import org.apache.lucene.analysis.PerFieldAnalyzerWrapper;
+import org.apache.lucene.analysis.WhitespaceAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -28,8 +32,14 @@ public class SimpleLucene {
 
 	public static final String CONTENT_ATTRIBUTE = "content";
 
-	private static final StandardAnalyzer ANALYZER = new StandardAnalyzer(LuceneVersion.getVersion(),
-			CharArraySet.EMPTY_SET);
+	
+	private static final Map<String, Analyzer> FIELD_ANALYZERS = new HashMap<String, Analyzer>();
+	static {
+		FIELD_ANALYZERS.put("categoryId", new WhitespaceAnalyzer(LuceneVersion.getVersion()));
+	}
+	
+	private static final PerFieldAnalyzerWrapper ANALYZER = new PerFieldAnalyzerWrapper(new StandardAnalyzer(LuceneVersion.getVersion(),
+			CharArraySet.EMPTY_SET), FIELD_ANALYZERS);
 
 	IndexSearcher searcher;
 
@@ -43,7 +53,7 @@ public class SimpleLucene {
 		return IndexReader.open(index);
 	}
 
-	public void add(Document document) throws CorruptIndexException, IOException {
+	public void add(final Document document) throws CorruptIndexException, IOException {
 		IndexWriterConfig indexWriterConfig = new IndexWriterConfig(LuceneVersion.getVersion(), ANALYZER);
 		IndexWriter writer = new IndexWriter(index, indexWriterConfig);
 		writer.addDocument(document);
@@ -51,7 +61,7 @@ public class SimpleLucene {
 		writer.close();
 	}
 
-	public Document add(String text) throws CorruptIndexException, IOException {
+	public Document add(final String text) throws CorruptIndexException, IOException {
 		Document document = new Document();
 		document.add(new Field(SimpleLucene.CONTENT_ATTRIBUTE, text, Field.Store.YES, Field.Index.ANALYZED,
 				TermVector.WITH_POSITIONS_OFFSETS));
@@ -59,7 +69,7 @@ public class SimpleLucene {
 		return document;
 	}
 
-	public Document add(Map<String, String> fields) throws CorruptIndexException, IOException {
+	public Document add(final Map<String, String> fields) throws CorruptIndexException, IOException {
 		Document document = new Document();
 		for (String fieldName : fields.keySet()) {
 			document.add(new Field(fieldName, fields.get(fieldName), Field.Store.YES, Field.Index.ANALYZED,
@@ -69,7 +79,7 @@ public class SimpleLucene {
 		return document;
 	}
 
-	public Document add(String... fields) throws CorruptIndexException, IOException {
+	public Document add(final String... fields) throws CorruptIndexException, IOException {
 		Document document = new Document();
 		for (String field : fields) {
 			String name = field.replaceAll(":.*", "");
@@ -81,13 +91,13 @@ public class SimpleLucene {
 		return document;
 	}
 
-	public Collection<Document> find(String luceneQuery) throws ParseException, IOException {
+	public Collection<Document> find(final String luceneQuery) throws ParseException, IOException {
 		QueryParser queryParser = new QueryParser(LuceneVersion.getVersion(), CONTENT_ATTRIBUTE, ANALYZER);
 		Query query = queryParser.parse(luceneQuery);
 		return find(query);
 	}
 
-	public Collection<Document> find(Query query) throws CorruptIndexException, IOException {
+	public Collection<Document> find(final Query query) throws CorruptIndexException, IOException {
 		initSearcher();
 		TopDocs hits = searcher.search(query, Integer.MAX_VALUE);
 		ArrayList<Document> result = new ArrayList<Document>();
