@@ -1,7 +1,6 @@
 package com.gentics.cr.lucene.indexaccessor;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -30,6 +29,8 @@ public class DefaultIndexAccessorTest {
 	public void setUp() throws IllegalArgumentException, SecurityException, InstantiationException, IllegalAccessException,
 			InvocationTargetException, NoSuchMethodException, ClassNotFoundException {
 		factory = IndexAccessorFactory.getInstance();
+		//reopen the factory because it could be closed by the garbage collector in the meantime
+		factory.reopen();
 		analyzer = (Analyzer) Class.forName("org.apache.lucene.analysis.WhitespaceAnalyzer").getConstructor().newInstance();
 		query = new BooleanQuery();
 	}
