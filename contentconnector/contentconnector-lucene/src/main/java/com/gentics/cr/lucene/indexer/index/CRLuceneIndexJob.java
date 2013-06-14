@@ -463,6 +463,10 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 				int objectCount = status.getObjectsDone();
 				log.debug("Indexed " + objectCount + " objects...");
 
+				if (objectCount > 0) {
+					indexLocation.createReopenFile();
+				}
+
 				if (taxonomyAccessor != null && taxonomyWriter != null) {
 					taxonomyAccessor.release(taxonomyWriter);
 				}
@@ -474,9 +478,6 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 					indexAccessor.release(indexReader, false);
 				}
 
-				if (objectCount > 0) {
-					indexLocation.createReopenFile();
-				}
 				UseCase ucFireEvent = MonitorFactory.startUseCase("indexCR(" + crid + ") fire IndexingFinishedEvent");
 				EventManager.getInstance().fireEvent(new IndexingFinishedEvent(indexLocation));
 				ucFireEvent.stop();
@@ -671,13 +672,11 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 				try {
 					newDoc.setBoost(Float.parseFloat(boostingValue));
 				} catch (Exception e) {
-					LOG.error("Could not pars boosting information "
-							+ "from resolvable.", e);
+					LOG.error("Could not pars boosting information " + "from resolvable.", e);
 				}
 			}
 		}
 
-		
 		for (Entry<String, Boolean> entry : attributes.entrySet()) {
 			String attributeName = (String) entry.getKey();
 			boolean filled = (newDoc.get(attributeName) != null);
