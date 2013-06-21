@@ -15,8 +15,8 @@ import com.google.common.base.CharMatcher;
 
 /**
  * Cleanup an attribute from not readable characters and not well readable
- * characters such es endless lines of point in the index pages of word
- * documents. Replace multiple occurances of newlines, tabs, spaces with only one.
+ * characters such as endless lines of point in the index pages of word
+ * documents. Replace multiple occurrences of newlines, tabs, spaces with only one.
  */
 public class CleanupTextTransformer extends ContentTransformer {
 
@@ -44,7 +44,7 @@ public class CleanupTextTransformer extends ContentTransformer {
 	 * @see TRANSFORMER_CLEAN_TABLE_OF_INDEX_DOTS
 	 */
 	private boolean cleanTableOfIndexDots = true;
-	
+
 	/**
 	 * Newline.
 	 */
@@ -80,6 +80,7 @@ public class CleanupTextTransformer extends ContentTransformer {
 		if (removeNonPrintableCharacters) {
 			content = removeNonPrintableCharacters(content);
 		}
+		content = transformBulletPoints(content);
 		content = normalizeWhiteSpaceCharacters(content);
 		content = removeWhiteSpaces(content);
 
@@ -136,7 +137,7 @@ public class CleanupTextTransformer extends ContentTransformer {
 	}
 
 	/**
-	 * Replace occurance of ". . . " with ... 
+	 * Replace occurrence of ". . . " with ... 
 	 */
 	private String cleanTableOfIndexDotsWithSpacesInBetween(final String content) {
 		return content.replaceAll("(\\. ){3,}", "... ");
@@ -147,6 +148,13 @@ public class CleanupTextTransformer extends ContentTransformer {
 	 */
 	private String removeNonPrintableCharacters(final String input) {
 		return input.replaceAll("[^\\P{Cc}\\t\\r\\n]", "");
+	}
+
+	/**
+	 * Convert all "strange" characters which should be bullet points.
+	 */
+	private String transformBulletPoints(final String content) {
+		return content.replaceAll("", "\u2219");		// replace \uF0B7 with a small bullet point
 	}
 
 	@Override
