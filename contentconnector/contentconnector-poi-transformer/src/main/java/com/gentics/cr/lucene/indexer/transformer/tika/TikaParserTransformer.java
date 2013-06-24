@@ -2,7 +2,10 @@ package com.gentics.cr.lucene.indexer.transformer.tika;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.tika.Tika;
 import org.apache.tika.exception.TikaException;
@@ -10,8 +13,12 @@ import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.language.LanguageIdentifier;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.metadata.TikaCoreProperties;
+import org.apache.tika.mime.MediaType;
 import org.apache.tika.parser.AutoDetectParser;
+import org.apache.tika.parser.DefaultParser;
 import org.apache.tika.parser.ParseContext;
+import org.apache.tika.parser.Parser;
+import org.apache.tika.parser.pdf.PDFParser;
 import org.apache.tika.sax.BodyContentHandler;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
@@ -80,6 +87,14 @@ public class TikaParserTransformer extends ContentTransformer {
 	 * Config key to enable or disable language detection of content.
 	 */
 	private static final String TRANSFORMER_DETECT_LANGUAGES_FIELD_KEY = "detectLanguages";
+
+	/**
+	 * Configure parsers with some (hardcoded) flags.
+	 * Warning: this is slow as it iterates over all parsers each time the transformer is instantiated.
+	 * e.g enable setSortByPosition on PDFBoxs PDFParser.
+	 * TODO: those flags could be made configurable but this option should remain as it is pretty slow.
+	 */
+	private static final String TRANSFORMER_USE_CUSTOM_PARSER_OPTIONS = "useCustomParserOptions";
 
 	/**
 	 * Field to store the config value representing the attribute to use for parsing.
@@ -158,7 +173,6 @@ public class TikaParserTransformer extends ContentTransformer {
 		if (config.get(TRANSFORMER_TARGET_ATTRIBUTE_FIELD_KEY) != null) {
 			targetAttributeField = config.getString(TRANSFORMER_TARGET_ATTRIBUTE_FIELD_KEY);
 		}
-
 		if (config.get(TRANSFORMER_CREATETIMESTAMP_ATTRIBUTE_FIELD_KEY) != null) {
 			createTimestampField = config.getString(TRANSFORMER_CREATETIMESTAMP_ATTRIBUTE_FIELD_KEY);
 		}
@@ -177,12 +191,14 @@ public class TikaParserTransformer extends ContentTransformer {
 		if (config.get(TRANSFORMER_MIMETYPE_ATTRIBUTE_FIELD_KEY) != null) {
 			mimetypeField = config.getString(TRANSFORMER_MIMETYPE_ATTRIBUTE_FIELD_KEY);
 		}
-
 		if (config.get(TRANSFORMER_ALLOWED_LANGS_FIELD_KEY) != null) {
 			allowedLanguages = Arrays.asList(config.getString(TRANSFORMER_ALLOWED_LANGS_FIELD_KEY).split(","));
 		}
 		if (config.get(TRANSFORMER_DETECT_LANGUAGES_FIELD_KEY) != null) {
 			languageDetection = config.getBoolean(TRANSFORMER_DETECT_LANGUAGES_FIELD_KEY);
+		}
+		if (config.get(TRANSFORMER_USE_CUSTOM_PARSER_OPTIONS) != null && config.getBoolean(TRANSFORMER_USE_CUSTOM_PARSER_OPTIONS)) {
+			setParserOptions(parser.getParsers());
 		}
 	}
 
@@ -206,7 +222,6 @@ public class TikaParserTransformer extends ContentTransformer {
 					metadata.set(Metadata.CONTENT_TYPE, tika.detect(inputStream));
 
 					parser.parse(inputStream, textHandler, metadata, context);
-
 					bean.set(headingField, metadata.get(TikaCoreProperties.TITLE));
 
 					if (bean.get(createTimestampField) == null) {
@@ -281,6 +296,28 @@ public class TikaParserTransformer extends ContentTransformer {
 			}
 		}
 		return content;
+	}
+
+	/**
+	 * Iterate over all parsers and set options on specific ones.
+	 * @param parsers map of all parsers to be "inspected" and where properties should be set on.
+	 */
+	private void setParserOptions(Map<MediaType, Parser> parsers) {
+		Iterator<Entry<MediaType, Parser>> it = parsers.entrySet().iterator();
+		while (it.hasNext()) {
+			Map.Entry<MediaType, Parser> parser = (Entry<MediaType, Parser>) it.next();
+
+			if (parser.getKey().getSubtype().equals("pdf")) {
+				if (parser.getValue() instanceof DefaultParser) {
+					DefaultParser defaultParser = (DefaultParser) parser.getValue();
+					setParserOptions(defaultParser.getParsers());
+				}
+				if (parser.getValue() instanceof PDFParser) {
+					PDFParser pdfParser = (PDFParser) parser.getValue();
+					pdfParser.setSortByPosition(true);
+				}
+			}
+		}
 	}
 
 	@Override
