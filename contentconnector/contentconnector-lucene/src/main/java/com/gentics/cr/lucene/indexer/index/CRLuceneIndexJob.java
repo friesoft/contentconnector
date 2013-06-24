@@ -535,12 +535,10 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 				UseCase bcase = MonitorFactory.startUseCase("indexSlice(" + crid + ").indexBean");
 				try {
 					//CALL PRE INDEX PROCESSORS/TRANSFORMERS
-					//TODO This could be optimized for multicore servers with 
-					//a map/reduce algorithm
+					//TODO This could be optimized for multicore servers with a map/reduce algorithm
 					if (transformerlist != null) {
 						for (ContentTransformer transformer : transformerlist) {
 							try {
-
 								if (transformer.match(bean)) {
 									String msg = "TRANSFORMER: " + transformer.getTransformerKey() + "; BEAN: " + bean.get(idAttribute);
 									status.setCurrentStatusString(msg);
@@ -734,13 +732,9 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 	 * Maps the attributes of a {@link CRResolvableBean} to a List of
 	 * {@link CategoryPath} for the taxonomy.
 	 * 
-	 * @param bean
-	 *            contains the resolvable bean which is to be mapped
-	 * @param taxoMaps
-	 *            contains a collection of {@link TaxonomyMapping} which define
-	 *            the attribute to categories mappings
-	 * @return a list of {@link CategoryPath} which are used to build the
-	 *         document and to update the taxonomy
+	 * @param bean contains the resolvable bean which is to be mapped
+	 * @param taxoMaps contains a collection of {@link TaxonomyMapping} which define the attribute to categories mappings
+	 * @return a list of {@link CategoryPath} which are used to build the document and to update the taxonomy
 	 * @author Sebastian Vogel <s.vogel@gentics.com>
 	 */
 	private List<CategoryPath> getCategoryAttributeMapping(final CRResolvableBean bean, Collection<TaxonomyMapping> taxoMaps) {
