@@ -62,6 +62,11 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 	private static final Logger LOG = Logger.getLogger(CRLuceneIndexJob.class);
 
 	/**
+	 * Logger for bean debug output while indexing (displays bean which is currently indexed).
+	 */
+	private static final Logger LOG_BEAN = Logger.getLogger("CRLuceneIndexJob.Bean");
+
+	/**
 	 * Name of class to use for IndexLocation, must extend
 	 * {@link com.gentics.cr.util.indexing.IndexLocation}.
 	 */
@@ -117,6 +122,11 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 		}
 
 		boostingAttribute = config.getString(BOOST_ATTRIBUTE_KEY, DEFAULT_BOOST_ATTRIBUTE);
+
+		String debugFormat = config.getString(DEBUG_BEAN_FORMAT);
+		if (debugFormat != null && !"".equals(debugFormat)) {
+			this.debugBeanFormat = debugFormat;
+		}
 	}
 
 	/**
@@ -182,6 +192,14 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 	private static final String BATCH_SIZE_KEY = "BATCHSIZE";
 
 	/**
+	 * Define the format of debug output while indexing beans.
+	 * Example:
+	 * Indexing bean: %(contentid) (%(node_id)) - %(pub_dir)/%(filename) (%(name))
+	 * It is also possible to use %(idAttribute) to use the configured idAttribute.
+	 */
+	private static final String DEBUG_BEAN_FORMAT = "debugBeanFormat";
+
+	/**
 	 * TODO javadoc.
 	 */
 	private static final String CR_FIELD_KEY = "CRID";
@@ -215,6 +233,8 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 	 * Flag if TermVectors should be stored in the index or not.
 	 */
 	private boolean storeVectors = true;
+
+	public String debugBeanFormat = "Indexing bean: %(idAttribute)";
 
 	/**
 	 * Boostingmap.
@@ -533,6 +553,9 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 			for (Resolvable objectToIndex : slice) {
 				CRResolvableBean bean = new CRResolvableBean(objectToIndex, prefillAttributes);
 				UseCase bcase = MonitorFactory.startUseCase("indexSlice(" + crid + ").indexBean");
+				if (LOG_BEAN.isInfoEnabled()) {
+					LOG_BEAN.info(bean.format(idAttribute, debugBeanFormat));
+				}
 				try {
 					//CALL PRE INDEX PROCESSORS/TRANSFORMERS
 					//TODO This could be optimized for multicore servers with a map/reduce algorithm
@@ -589,7 +612,6 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 				if (Thread.currentThread().isInterrupted()) {
 					break;
 				}
-				LOG.debug(crid + " - Indexed object: " + bean.getString(idAttribute));
 				this.status.setObjectsDone(this.status.getObjectsDone() + 1);
 			}
 		} catch (Exception e) {
