@@ -258,8 +258,8 @@ public class TikaParserTransformer extends ContentTransformer {
 	 * @return String to be used for log output.
 	 */
 	private String getBeanInfo(final CRResolvableBean bean) {
-		return bean.getContentid() + " (NodeId: " + bean.getString("node_id") + ") - " + bean.getString("pub_dir") + "/"
-				+ bean.getString("filename");
+		String formatString = "%(contentid): (NodeId: %(node_id) - %(pub_dir)%(filename))";
+		return bean.format(formatString);
 	}
 
 	/**
