@@ -553,7 +553,7 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 			for (Resolvable objectToIndex : slice) {
 				CRResolvableBean bean = new CRResolvableBean(objectToIndex, prefillAttributes);
 				UseCase bcase = MonitorFactory.startUseCase("indexSlice(" + crid + ").indexBean");
-				if (LOG_BEAN.isInfoEnabled()) {
+				if (LOG_BEAN.isInfoEnabled() && !debugBeanFormat.equalsIgnoreCase("null")) {
 					LOG_BEAN.info(bean.format(idAttribute, debugBeanFormat));
 				}
 				try {
