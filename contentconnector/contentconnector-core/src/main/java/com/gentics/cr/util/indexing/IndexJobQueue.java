@@ -56,7 +56,7 @@ public class IndexJobQueue {
 	/**
 	 * Configuration key to set eventreceivers for {@link JobQueueFinishedEvent}. 
 	 */
-	private static final String JOBQUEUEFINISHEDEVENTRECEIVERS_KEY = "jobqueuefinishedeventreceivers";
+	private static final String JOBQUEUEFINISHEDEVENTRECEIVERS_KEY = "jobqueuefinishedeventreceiver";
 
 	/**
 	 * The eventreceivers' class. Must implement {@link AbstractIndexNameAwareEventReceiver}.
