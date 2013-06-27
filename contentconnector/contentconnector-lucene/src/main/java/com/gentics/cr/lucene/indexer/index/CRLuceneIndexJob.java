@@ -200,7 +200,7 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 	private static final String DEBUG_BEAN_FORMAT = "debugBeanFormat";
 
 	/**
-	 * TODO javadoc.
+	 * CRID describes the type of the index part.
 	 */
 	private static final String CR_FIELD_KEY = "CRID";
 
