@@ -509,7 +509,8 @@ public abstract class IndexLocation {
 	 * @param configmap configurationmap
 	 * @return the created instance
 	 */
-	private AbstractUpdateCheckerJob createIndexJobInstance(final CRConfig config, final ConcurrentHashMap<String, CRConfigUtil> configmap) {
+	protected AbstractUpdateCheckerJob
+			createIndexJobInstance(final CRConfig config, final ConcurrentHashMap<String, CRConfigUtil> configmap) {
 		Class<? extends AbstractUpdateCheckerJob> updatejobImplementationClass = getUpdateJobImplementationClass(config);
 		AbstractUpdateCheckerJob indexJob = null;
 		Constructor<? extends AbstractUpdateCheckerJob> updatejobImplementationClassConstructor;

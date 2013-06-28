@@ -4,9 +4,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.gentics.cr.CRConfig;
 import com.gentics.cr.CRConfigUtil;
+import com.gentics.cr.exceptions.CRException;
 
 /**
- * DummyIndexLocation for Testing
+ * DummyIndexLocation for Testing.
  * 
  * @author patrickhoefer
  */
@@ -15,7 +16,7 @@ public class DummyIndexLocation2 extends IndexLocation {
 	/**
 	 * @param givenConfig configuration for DummyIndexLocation
 	 */
-	protected DummyIndexLocation2(CRConfig givenConfig) {
+	protected DummyIndexLocation2(final CRConfig givenConfig) {
 		super(givenConfig);
 	}
 
@@ -41,10 +42,21 @@ public class DummyIndexLocation2 extends IndexLocation {
 
 	/**
 	 * Overrides createCRIndexJob and print out which index Job was created. Is used in CreateAllCRIndexJobsOrderTest.
+	 * 
+	 * @param config configuration
+	 * @param configmap configurationmap
+	 * @return <code>null</code>
 	 */
-	public boolean createCRIndexJob(CRConfig config, ConcurrentHashMap<String, CRConfigUtil> configmap) {
+	@Override
+	public AbstractUpdateCheckerJob createIndexJobInstance(final CRConfig config, final ConcurrentHashMap<String, CRConfigUtil> configmap) {
 		System.out.print("Create Job: " + config.getName() + " ");
-		return true;
+		return new AbstractUpdateCheckerJob(config, this, configmap) {
+
+			@Override
+			protected void indexCR(final IndexLocation indexLocation, final CRConfigUtil config) throws CRException {
+				// do nothing
+			}
+		};
 	}
 
 }
