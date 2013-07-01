@@ -200,7 +200,7 @@ public class CRSearcher {
 		retrieveCollector = config.getBoolean(RETRIEVE_COLLECTOR_KEY);
 		Object objRetrieveFieldValues = config.get(RETRIEVE_FIELD_VALUES_KEY);
 		if (objRetrieveFieldValues instanceof String) {
-			retrieveFieldValues = Arrays.asList((String) objRetrieveFieldValues);
+			retrieveFieldValues = Arrays.asList(((String) objRetrieveFieldValues).split(","));
 		} else if (objRetrieveFieldValues instanceof List) {
 			retrieveFieldValues = (List<String>) config.get(RETRIEVE_FIELD_VALUES_KEY);
 		} else {
