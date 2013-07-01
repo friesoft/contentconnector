@@ -54,6 +54,7 @@ public class CRMetaResolvableBean extends CRResolvableBean {
 		set(CRSearcher.RESULT_BESTQUERYHITS_KEY, searchResult.get(CRSearcher.RESULT_BESTQUERYHITS_KEY));
 		set(CRSearcher.RESULT_COLLECTOR_KEY, searchResult.get(CRSearcher.RESULT_COLLECTOR_KEY));
 		set(CRSearcher.RESULT_UNIQUE_MIMETYPES_KEY, searchResult.get(CRSearcher.RESULT_UNIQUE_MIMETYPES_KEY));
+		set(CRSearcher.RESULT_UNIQUE_FIELD_VALUES_KEY, searchResult.get(CRSearcher.RESULT_UNIQUE_FIELD_VALUES_KEY));
 
 		if (searchResult.containsKey(FacetsSearchConfigKeys.RESULT_FACETS_LIST_KEY)) {
 			set(FacetsSearchConfigKeys.RESULT_FACETS_LIST_KEY, searchResult.get(FacetsSearchConfigKeys.RESULT_FACETS_LIST_KEY));

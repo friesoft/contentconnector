@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
@@ -71,13 +72,22 @@ public class CRSearcher {
 	protected static final String COLLECTOR_CLASS_KEY = "collectorClass";
 	private static final String COLLECTOR_CONFIG_KEY = "collector";
 
+	/** True, if used collector should be retrieved with the result. */
 	public static final String RETRIEVE_COLLECTOR_KEY = "collectorInResult";
+	/** Used collector. */
 	public static final String RESULT_COLLECTOR_KEY = "collector";
 	
+	/** True, if unique mimetype values should be retrieved. */
 	public static final String RETRIEVE_UNIQUE_MIMETYPES_KEY = "retrieveUniqueMimetypes";
+	/** Unique mimetype values. */
 	public static final String RESULT_UNIQUE_MIMETYPES_KEY = "unique_mimetypes";
-	
+	/** Index field name for the mimetypes. */
 	private static final String LUCENE_INDEX_MIMETYPE = "mimetype";
+
+	/** List of fields from which the unique values should be retrieved. */
+	public static final String RETRIEVE_FIELD_VALUES_KEY = "retrieveFieldValues";
+	/** Unique field values. Object is of type Map&lt;String, List&lt;String&gt;&gt; */
+	public static final String RESULT_UNIQUE_FIELD_VALUES_KEY = "unique_field_values";
 
 	/**
 	 * Key to store the searchquery in the result.
@@ -152,6 +162,7 @@ public class CRSearcher {
 	 * retrieve unique mimetypes and put it in result.
 	 */
 	private boolean retrieveUniqueMimeTypes = false;
+	private List<String> retrieveFieldValues;
 	
 	/**
 	 * put used collector in metadata.
@@ -187,6 +198,15 @@ public class CRSearcher {
 		
 		retrieveUniqueMimeTypes = config.getBoolean(RETRIEVE_UNIQUE_MIMETYPES_KEY);
 		retrieveCollector = config.getBoolean(RETRIEVE_COLLECTOR_KEY);
+		Object objRetrieveFieldValues = config.get(RETRIEVE_FIELD_VALUES_KEY);
+		if (objRetrieveFieldValues instanceof String) {
+			retrieveFieldValues = Arrays.asList((String) objRetrieveFieldValues);
+		} else if (objRetrieveFieldValues instanceof List) {
+			retrieveFieldValues = (List<String>) config.get(RETRIEVE_FIELD_VALUES_KEY);
+		} else {
+			log.error("'" + RETRIEVE_FIELD_VALUES_KEY + "' of unsupported type.");
+		}
+
 
 	}
 
@@ -399,16 +419,34 @@ public class CRSearcher {
 		TaxonomyAccessor taAccessor = null;
 		TaxonomyReader taReader = null;
 		IndexReader facetsIndexReader = null;
-		IndexReader uniqueMimeTypesIndexReader = null;
+		IndexReader uniqueFieldValuesIndexReader = null;
 		
+		Map<String, List<String>> uniqueFieldValues = new HashMap<String, List<String>>();
+		if (CollectionUtils.isNotEmpty(retrieveFieldValues)) {
+			for (String key : retrieveFieldValues) {
+				uniqueFieldValuesIndexReader = indexAccessor.getReader(false);
+				final TermEnum termEnum = uniqueFieldValuesIndexReader.terms(new Term(key));
+				uniqueFieldValues.put(key, new ArrayList<String>());
+				boolean hasNext = true;
+				while (hasNext && termEnum.term().field().equals(key)) {
+					uniqueFieldValues.get(key).add(termEnum.term().text());
+					hasNext = termEnum.next();
+				}
+			}
+		}
+
 		List<String> uniqueMimeTypes = null;
 		if (retrieveUniqueMimeTypes) {
-			// retrieve all possible file types
-			uniqueMimeTypesIndexReader = indexAccessor.getReader(false);
-			final TermEnum termEnum = uniqueMimeTypesIndexReader.terms(new Term(LUCENE_INDEX_MIMETYPE, ""));
+			// retrieve all possible mime types
+			if (uniqueFieldValuesIndexReader == null) {
+				uniqueFieldValuesIndexReader = indexAccessor.getReader(false);
+			}
+			final TermEnum termEnum = uniqueFieldValuesIndexReader.terms(new Term(LUCENE_INDEX_MIMETYPE));
 			uniqueMimeTypes = new ArrayList<String>();
-			while (termEnum.next() && termEnum.term().field().equals(LUCENE_INDEX_MIMETYPE)) {
+			boolean hasNext = true;
+			while (hasNext && termEnum.term().field().equals(LUCENE_INDEX_MIMETYPE)) {
 				uniqueMimeTypes.add(termEnum.term().text());
+				hasNext = termEnum.next();
 			}
 		}
 
@@ -471,6 +509,10 @@ public class CRSearcher {
 
 					result.put(RESULT_HITS_KEY, totalhits);
 					result.put(RESULT_MAXSCORE_KEY, maxScore);
+					
+					if (CollectionUtils.isNotEmpty(retrieveFieldValues)) {
+						result.put(RESULT_UNIQUE_FIELD_VALUES_KEY, uniqueFieldValues);
+					}
 
 					if (retrieveUniqueMimeTypes) {
 						// add unique extensions
@@ -535,8 +577,8 @@ public class CRSearcher {
 			if (facetsIndexReader != null) {
 				indexAccessor.release(facetsIndexReader, false);
 			}
-			if (uniqueMimeTypesIndexReader != null) {
-				indexAccessor.release(uniqueMimeTypesIndexReader, false);
+			if (uniqueFieldValuesIndexReader != null) {
+				indexAccessor.release(uniqueFieldValuesIndexReader, false);
 			}
 			indexAccessor.release(searcher);
 		}
