@@ -162,7 +162,10 @@ public class PlinkProcessor {
 				}
 				// as url is a special object put it also in the templates
 				if (this.config.getPathResolver() != null) {
-					String url = this.config.getPathResolver().getPath(plinkObject);
+					String url = "#";
+					if (plinkObject != null) {
+						url = this.config.getPathResolver().getPath(plinkObject);
+					}
 					if (url != null) {
 						myTemplateEngine.put("url", url);
 					}
