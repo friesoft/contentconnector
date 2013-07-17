@@ -81,6 +81,7 @@
 		<module>contentconnector-servlet</module>
 		<module>contentconnector-servlet-sample</module>
 		<module>contentconnector-social-networking</module>
+		<module>contentconnector-mccr</module>
 		<module>contentconnector-testutils</module>
 	</modules>
 	<repositories>
