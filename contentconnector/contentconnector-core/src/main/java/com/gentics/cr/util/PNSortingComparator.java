@@ -3,7 +3,6 @@ package com.gentics.cr.util;
 import java.util.Comparator;
 
 import com.gentics.api.lib.datasource.Datasource;
-<<<<<<< HEAD
 import com.gentics.api.lib.datasource.Datasource.Sorting;
 import com.gentics.api.lib.resolving.Resolvable;
 
@@ -13,29 +12,21 @@ import com.gentics.api.lib.resolving.Resolvable;
  *
  * @param <T>
  */
-=======
-import com.gentics.api.lib.resolving.Resolvable;
-
->>>>>>> cca15a7... moved sorting comparator to core package
 public class PNSortingComparator<T extends Resolvable> implements Comparator<Resolvable> {
 
 	private String columnName;
 	private int sortOrder;
 	
-<<<<<<< HEAD
 	/**
 	 * Constructor with column name and sort order (Datasource.SORTORDER_DESC/Datasource.SORTORDER_ASC).
 	 * @param columnName
 	 * @param sortOrder
 	 */
-=======
->>>>>>> cca15a7... moved sorting comparator to core package
 	public PNSortingComparator(String columnName, int sortOrder) {
 		this.columnName = columnName;
 		this.sortOrder = sortOrder;
 	}
 	
-<<<<<<< HEAD
 	/**
 	 * Constructor with Sorting.
 	 * @param sorting
@@ -45,8 +36,6 @@ public class PNSortingComparator<T extends Resolvable> implements Comparator<Res
 		this.sortOrder = sorting.getSortOrder();
 	}
 	
-=======
->>>>>>> cca15a7... moved sorting comparator to core package
 	
 	@Override
 	public int compare(Resolvable o1, Resolvable o2) {
