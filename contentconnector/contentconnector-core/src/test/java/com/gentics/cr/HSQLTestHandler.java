@@ -6,6 +6,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
 
+import org.apache.log4j.Logger;
+
 import com.gentics.api.lib.datasource.DatasourceException;
 import com.gentics.api.lib.datasource.DatasourceInfo;
 import com.gentics.api.lib.datasource.WriteableDatasource;
@@ -18,6 +20,8 @@ import com.gentics.cr.testutils.AbstractTestHandler;
 import com.gentics.cr.testutils.GenticsCRHelper;
 
 public class HSQLTestHandler extends AbstractTestHandler {
+
+	private final static Logger LOGGER = Logger.getLogger(HSQLTestHandler.class);
 
 	WriteableDatasource wDs;
 
