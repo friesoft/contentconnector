@@ -32,6 +32,16 @@ import com.gentics.cr.util.RequestWrapper;
 public class CRRequest implements Cloneable, Serializable {
 
 	/**
+	 * Constant Integer to prevent continous initialization of integers for the same return value, -1.
+	 */
+	private static final Integer MINUS_ONE = Integer.valueOf(-1);
+
+	/**
+	 * Constant Integer to prevent continous initialization of integers for the same return value, 0.
+	 */
+	private static final Integer ZERO = Integer.valueOf(0);
+
+	/**
 	 * non unique serialization id.
 	 */
 	private static final long serialVersionUID = 1L;
@@ -400,7 +410,7 @@ public class CRRequest implements Cloneable, Serializable {
 	public Integer getStart() {
 		Integer start = (Integer) this.get("start");
 		if (start == null) {
-			return (new Integer(0));
+			return ZERO;
 		}
 		return start;
 	}
@@ -414,7 +424,7 @@ public class CRRequest implements Cloneable, Serializable {
 	public Integer getCount() {
 		Integer count = (Integer) this.get("count");
 		if (count == null) {
-			return (new Integer(-1));
+			return MINUS_ONE;
 		}
 		return count;
 	}

@@ -78,15 +78,15 @@ public class PHPSerializer {
 	}
 
 	private void doSerialize(double object, SerializedDataWrite result) throws UnsupportedEncodingException {
-		doSerialize(new Double(object).toString(), result);
+		doSerialize(Double.valueOf(object).toString(), result);
 	}
 
 	private void doSerialize(long object, SerializedDataWrite result) throws UnsupportedEncodingException {
-		doSerialize(new Long(object).toString(), result);
+		doSerialize(Long.valueOf(object).toString(), result);
 	}
 
 	private void doSerialize(int object, SerializedDataWrite result) throws UnsupportedEncodingException {
-		doSerialize(new Integer(object).toString(), result);
+		doSerialize(Integer.valueOf(object).toString(), result);
 	}
 
 	/** Serialize to PHP format into a string
@@ -125,7 +125,7 @@ public class PHPSerializer {
 		} else if (object instanceof List) {//List
 			result.put("a:");
 			int size = ((List<Object>) object).size();
-			result.put((new Integer(size).toString()));
+			result.put(Integer.valueOf(size).toString());
 			result.put(":{");
 			int i = 0;
 			Iterator<Object> it = ((List<Object>) object).iterator();
@@ -276,11 +276,11 @@ public class PHPSerializer {
 		} else if (type == 'i') {//Integer
 			int start = position + 2, end = str.indexOf(';', start);
 			position = end + 1;
-			return new Long(Long.parseLong(str.substring(start, end)));
+			return Long.valueOf(Long.parseLong(str.substring(start, end)));
 		} else if (type == 'd') {//Double
 			int start = position + 2, end = str.indexOf(';', start);
 			position = end + 1;
-			return new Double(Double.parseDouble(str.substring(start, end)));
+			return Double.valueOf(Double.parseDouble(str.substring(start, end)));
 		} else if (type == 's') {//String
 			position += 2;
 			int start = str.indexOf(':', position);

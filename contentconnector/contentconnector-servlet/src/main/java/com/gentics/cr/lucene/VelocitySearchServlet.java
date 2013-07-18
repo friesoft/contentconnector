@@ -127,8 +127,8 @@ public class VelocitySearchServlet extends HttpServlet {
 			parsedquery = "content:" + query;
 		}
 
-		this.vtl.put("start", new Integer(start));
-		this.vtl.put("count", new Integer(count));
+		this.vtl.put("start", Integer.valueOf(start));
+		this.vtl.put("count", Integer.valueOf(count));
 		this.vtl.put("query", query);
 		this.vtl.put("encquery", URLEncoder.encode(query, "UTF-8"));
 

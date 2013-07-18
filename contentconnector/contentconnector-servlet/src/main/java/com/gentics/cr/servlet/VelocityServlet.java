@@ -115,7 +115,7 @@ public abstract class VelocityServlet extends HttpServlet {
 	 */
 	public final void render(final HttpServletResponse response) throws IOException {
 		try {
-			String timestamp = new Long(System.currentTimeMillis()).toString();
+			String timestamp = Long.valueOf(System.currentTimeMillis()).toString();
 			vtl.put("timestamp", timestamp);
 			String output = vtl.render(tpl.getKey(), tpl.getSource());
 			response.getWriter().write(output);

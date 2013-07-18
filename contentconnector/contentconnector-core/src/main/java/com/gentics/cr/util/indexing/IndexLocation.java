@@ -228,7 +228,7 @@ public abstract class IndexLocation {
 				if (indexIntervals == null) {
 					indexIntervals = new HashMap<String, Integer>();
 				}
-				indexIntervals.put(indexPartName, new Integer(interval));
+				indexIntervals.put(indexPartName, Integer.valueOf(interval));
 			}
 		}
 	}

@@ -32,6 +32,10 @@ import java.util.Set;
  *
  */
 public class HTMLStripReader extends Reader {
+	/**
+	 * Constant character to prevent initializing lots of new objects.
+	 */
+	private static final Character SIMPLE_SPACE = Character.valueOf(' ');
 	private final Reader in;
 	private int readAheadLimit = DEFAULT_READ_AHEAD;
 	private int readAheadLimitMinus1 = readAheadLimit - 1;
@@ -862,10 +866,10 @@ public class HTMLStripReader extends Reader {
 				175, 977, 199, 186, 8657, 8704, 946, 402, 961, 181, 233, 969, 183, 915, 8207, 9001, 9824, 8839, 254,
 				246, 8744, 187, 8706, 167, 8220, 9829, 963, 243 };
 		for (int i = 0; i < entityName.length; i++) {
-			entityTable.put(entityName[i], new Character(entityVal[i]));
+			entityTable.put(entityName[i], Character.valueOf(entityVal[i]));
 		}
 		// special-case nbsp to a simple space instead of 0xa0
-		entityTable.put("nbsp", new Character(' '));
+		entityTable.put("nbsp", SIMPLE_SPACE);
 	}
 
 }
