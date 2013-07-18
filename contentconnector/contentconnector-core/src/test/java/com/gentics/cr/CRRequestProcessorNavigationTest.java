@@ -70,7 +70,11 @@ public class CRRequestProcessorNavigationTest extends RequestProcessorTest {
 		testHandler = new HSQLTestHandler(config.getRequestProcessorConfig(1));
 
 		// a folder structure
+<<<<<<< HEAD
 		createTestNavigationData(3, 3);
+=======
+		createTestNavigationData(2, 2);
+>>>>>>> 9824a0a... Add navigation test granularity, check if trees are equal
 	}
 
 	/*
@@ -303,7 +307,11 @@ public class CRRequestProcessorNavigationTest extends RequestProcessorTest {
 	 * Compares two collections of CRResolvableBeans against contentid and
 	 * childrepositories.
 	 * 
+<<<<<<< HEAD
 	 * ATTENTION: not very fast! Should only be used for testing!
+=======
+	 * ATTENTION: the fetchedTree will be modified and truncated!
+>>>>>>> 9824a0a... Add navigation test granularity, check if trees are equal
 	 * 
 	 * @param origTree
 	 * @param fetchedTree
