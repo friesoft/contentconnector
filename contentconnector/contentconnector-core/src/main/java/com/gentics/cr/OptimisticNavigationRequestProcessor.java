@@ -259,6 +259,13 @@ public class OptimisticNavigationRequestProcessor extends RequestProcessor {
 	 * (non-Javadoc)
 	 * 
 	 * @see com.gentics.cr.RequestProcessor#finalize()
+	 *            the collection
+	 *            the sorting
+	 */
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.gentics.cr.RequestProcessor#finalize()
 	 */
 	@Override
 	public void finalize() {
