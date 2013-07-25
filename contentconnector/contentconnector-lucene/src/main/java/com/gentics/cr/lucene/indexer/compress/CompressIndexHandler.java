@@ -23,8 +23,6 @@ public class CompressIndexHandler extends AbstractIndexNameAwareEventReceiver {
 			return;
 		}
 
-		IndexCompressor indexCompressor = new IndexCompressor();
-		// get indexname from event
-		indexCompressor.compress(jobQueueFinishedEvent.getData());
+		new IndexCompressor(jobQueueFinishedEvent.getData()).start();
 	}
 }

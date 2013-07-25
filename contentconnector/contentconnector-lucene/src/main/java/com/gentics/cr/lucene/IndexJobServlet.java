@@ -18,7 +18,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 
 import com.gentics.cr.CRConfigUtil;
-import com.gentics.cr.lucene.indexer.compress.IndexCompressor;
 import com.gentics.cr.lucene.indexer.index.LuceneIndexLocation;
 import com.gentics.cr.lucene.indexer.index.LuceneSingleIndexLocation;
 import com.gentics.cr.lucene.information.SpecialDirectoryRegistry;
@@ -73,23 +72,22 @@ public class IndexJobServlet extends VelocityServlet {
 		if ("download".equals(action)) {
 			IndexLocation location = indexer.getIndexes().get(index);
 			if (location instanceof LuceneSingleIndexLocation) {
-				// set metainformation to response
-				response.setContentType("application/x-compressed, application/x-tar");
-				response.setHeader("Content-Disposition", "attachment; filename=" + index + ".tar.gz");
-
 				// locate the compressed index
 				LuceneSingleIndexLocation indexLocation = (LuceneSingleIndexLocation) location;
 				File compressedIndexDirectory = new File(indexLocation.getReopenFilename()).getParentFile().getParentFile();
 				File compressedIndexFile = new File(new StringBuilder(compressedIndexDirectory.getAbsolutePath()).append("/").append(index)
 						.append(".tar.gz").toString());
 				if (!compressedIndexFile.exists()) {
-					// compress index if it's not present
-					IndexCompressor indexCompressor = new IndexCompressor();
-					indexCompressor.compress(index);
+					// compressed index is not available
+					response.sendError(404);
+				} else {
+					// set metainformation to response
+					response.setContentType("application/x-compressed, application/x-tar");
+					response.setHeader("Content-Disposition", "attachment; filename=" + index + ".tar.gz");
+					// load the compressed index
+					InputStream compressedIndex = new FileInputStream(compressedIndexFile);
+					IOUtils.copy(compressedIndex, response.getOutputStream());
 				}
-				// load the compressed index
-				InputStream compressedIndex = new FileInputStream(compressedIndexFile);
-				IOUtils.copy(compressedIndex, response.getOutputStream());
 			}
 			skipRenderingVelocity();
 		} else {
