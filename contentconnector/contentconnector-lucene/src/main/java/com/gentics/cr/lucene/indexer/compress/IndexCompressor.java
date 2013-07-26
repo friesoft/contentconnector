@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.io.IOUtils;
@@ -26,6 +27,11 @@ public class IndexCompressor extends Thread {
 	 * Logging.
 	 */
 	protected static final Logger LOGGER = Logger.getLogger(IndexCompressor.class);
+
+	/**
+	 * maximum age of the temp-file (minutes).
+	 */
+	private static final int MAXTEMPFILEAGE = 30;
 
 	/**
 	 * index-name.
@@ -51,6 +57,16 @@ public class IndexCompressor extends Thread {
 	 * compressed temp file.
 	 */
 	private File compressedIndexTempFile;
+
+	/**
+	 * Writelock-File.
+	 */
+	private File writeLock = null;
+
+	/**
+	 * indicates that the lock was written by this compressor.
+	 */
+	private boolean weWroteTheWriteLock;
 
 	/**
 	 * Creates an new IndexCompressor for the given index.
@@ -88,24 +104,19 @@ public class IndexCompressor extends Thread {
 	 * @param index indexname
 	 */
 	public void compress(final String index) {
-
-		File writeLock = null;
-		boolean weWroteTheWriteLock = false;
 		try {
 			indexLocation.checkLock();
 			if (indexDirectory.canWrite()) {
-				writeLock = new File(indexDirectory, "write.lock");
-				if (writeLock.createNewFile()) {
-					weWroteTheWriteLock = true;
-				} else {
-					throw new LockedIndexException(new Exception("the write lock file already exists in the index."));
-				}
-				//set to read only so the index jobs will not delete it.
-				writeLock.setReadOnly();
+				lockIndex();
 
-				// delete the temp-file
 				if (compressedIndexTempFile.exists()) {
-					compressedIndexTempFile.delete();
+					if ((new Date().getTime() - compressedIndexTempFile.lastModified()) / 1000 / 60 > MAXTEMPFILEAGE) {
+						// if temp-file is MAXTEMPFILEAGE not modified delete it
+						compressedIndexTempFile.delete();
+					} else {
+						// a compress is in progress => do nothing
+						return;
+					}
 				}
 				// compress index and save in temp-file
 				FileOutputStream fileOutputStream = new FileOutputStream(compressedIndexTempFile);
@@ -128,6 +139,22 @@ public class IndexCompressor extends Thread {
 				writeLock.delete();
 			}
 		}
+	}
+
+	/**
+	 * Locks the index.
+	 * @throws IOException if the lock could not be written
+	 * @throws LockedIndexException if index is already locked 
+	 */
+	private void lockIndex() throws IOException, LockedIndexException {
+		writeLock = new File(indexDirectory, "write.lock");
+		if (writeLock.createNewFile()) {
+			weWroteTheWriteLock = true;
+		} else {
+			throw new LockedIndexException(new Exception("the write lock file already exists in the index."));
+		}
+		//set to read only so the index jobs will not delete it.
+		writeLock.setReadOnly();
 	}
 
 }
