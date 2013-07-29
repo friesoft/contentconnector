@@ -1,26 +1,30 @@
 package com.gentics.cr.lucene.indexaccessor;
 
-import static org.junit.Assert.*;
-
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.net.URISyntaxException;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Searcher;
+import org.apache.lucene.store.AlreadyClosedException;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.RAMDirectory;
-import org.apache.lucene.store.SimpleFSDirectory;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.net.URISyntaxException;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class DefaultIndexAccessorTest {
 
@@ -172,5 +176,72 @@ public class DefaultIndexAccessorTest {
 		// releasing an already released reader should not change the use count
 		assertEquals(accessor.readingReadersOut(), 0);
 	}
+
+
+    private Exception otherThreadException;
+
+
+    /**
+     * Tries to create a segfault as described in PSLEAP-481.
+     * @throws Exception when test fails
+     */
+    @Test
+    public void testParallelAccess() throws Exception {
+        File reopenIndexLocation = testFolder.newFolder("reopenIndexLocation");
+        File originalIndex = new File(this.getClass().getResource("orignalIndex").toURI());
+        FileUtils.copyDirectory(originalIndex, reopenIndexLocation);
+        FSDirectory fsDir = FSDirectory.open(reopenIndexLocation);
+        factory.createAccessor(fsDir, analyzer);
+
+        for (int i = 0; i < 50; i++) {
+
+
+            final IndexAccessor accessor = factory.getAccessor(fsDir);
+            assertNotNull(accessor);
+
+            IndexWriter writer = accessor.getWriter();
+            writer.addDocument(new Document());
+            accessor.release(writer);
+
+            final IndexReader reader = accessor.getReader(false);
+
+
+            final CyclicBarrier sync = new CyclicBarrier(2);
+
+            Thread t = new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        reader.document(0);
+                        sync.await();
+                        Thread.sleep(((int)Math.random() * 100));
+                        reader.document(0);
+                        sync.await();
+                    } catch (Exception e) {
+                        sync.reset();
+                        otherThreadException = e;
+                    }
+                }
+            };
+
+            t.start();
+
+
+
+            try {
+                reader.document(0);
+                sync.await();
+                Thread.sleep(((int)Math.random() * 100));
+                reader.close();
+                sync.await();
+                if (otherThreadException != null) {
+                    throw otherThreadException;
+                }
+            } catch (BrokenBarrierException e) {
+            } catch (AlreadyClosedException e) {
+
+            }
+        }
+    }
 
 }
