@@ -13,6 +13,7 @@ import com.gentics.cr.configuration.GenericConfiguration;
 import com.gentics.cr.events.AbstractIndexNameAwareEventReceiver;
 import com.gentics.cr.events.EventManager;
 import com.gentics.cr.events.JobQueueFinishedEvent;
+import com.gentics.cr.events.JobQueueMetadata;
 
 /**
  * JobQueue worker class.
@@ -92,6 +93,11 @@ public class IndexJobQueue {
 	 * the corrent job.
 	 */
 	private AbstractUpdateCheckerJob currentJI;
+
+	/**
+	 * Jobqueue-Metadata.
+	 */
+	private JobQueueMetadata jobQueueMetadata;
 
 	/**
 	 * Array containing the last jobs for statistics.
@@ -214,6 +220,10 @@ public class IndexJobQueue {
 				synchronized (IndexJobQueue.this) {
 					AbstractUpdateCheckerJob j = this.queue.poll();
 					if (j != null) {
+						if (jobQueueMetadata == null) {
+							jobQueueMetadata = new JobQueueMetadata();
+							jobQueueMetadata.setIndex(j.getIdentifyer());
+						}
 						LOGGER.debug("Starting Job - " + j.getIdentifyer());
 						currentJI = j;
 						currentJob = new Thread(j);
@@ -224,11 +234,13 @@ public class IndexJobQueue {
 							currentJob.join();
 						}
 						addToLastJobs(j);
+						jobQueueMetadata.setModifiedIndex(jobQueueMetadata.isModifiedIndex() || j.isModifiedIndex());
 						currentJob = null;
 						currentJI = null;
 						if (queue.isEmpty()) {
 							LOGGER.debug("Sending JobQueueFinishedEvent");
-							EventManager.getInstance().fireEvent(new JobQueueFinishedEvent(j.getIdentifyer()));
+							EventManager.getInstance().fireEvent(new JobQueueFinishedEvent(jobQueueMetadata));
+							jobQueueMetadata = null;
 						}
 						LOGGER.debug("Finished Job - " + j.getIdentifyer());
 					}

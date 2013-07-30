@@ -481,6 +481,7 @@ public class CRLuceneIndexJob extends AbstractUpdateCheckerJob {
 				if (!finishedIndexJobSuccessfull && !finishedIndexJobWithError) {
 					LOG.fatal("There seems to be a run time exception from this" + " index job.\nLast slice was: " + slice);
 				}
+				modifiedIndex = status.getObjectsDone() != 0;
 				//Set status for job if it was not locked
 				status.setCurrentStatusString("Finished job.");
 				int objectCount = status.getObjectsDone();

@@ -15,7 +15,7 @@ public abstract class AbstractIndexNameAwareEventReceiver implements IEventRecei
 	protected String indexName;
 
 	/**
-	 * Set the indexname (also supporting identifiers from cr-config.
+	 * Set the indexname (also supporting identifiers from cr-config).
 	 * @param indexName indexname
 	 */
 	public void setIndexName(final String indexName) {

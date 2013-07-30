@@ -86,6 +86,11 @@ public abstract class AbstractUpdateCheckerJob implements Runnable {
 	protected IndexLocation indexLocation;
 
 	/**
+	 * <code>true</code> if this job modified the index.
+	 */
+	protected boolean modifiedIndex;
+
+	/**
 	 * marker for saving the duration in milliseconds.
 	 */
 	private long duration = 0;
@@ -239,6 +244,13 @@ public abstract class AbstractUpdateCheckerJob implements Runnable {
 	@Override
 	public int hashCode() {
 		return this.identifyer.hashCode();
+	}
+
+	/**
+	 * @return <code>true</code> if the job modified the index, otherwise <code>false</code>
+	 */
+	public boolean isModifiedIndex() {
+		return modifiedIndex;
 	}
 
 	/**

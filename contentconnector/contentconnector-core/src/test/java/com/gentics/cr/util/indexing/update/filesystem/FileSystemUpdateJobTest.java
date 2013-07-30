@@ -2,6 +2,7 @@ package com.gentics.cr.util.indexing.update.filesystem;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -13,9 +14,7 @@ import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.log4j.Logger;
-import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.gentics.cr.CRConfigUtil;
@@ -34,7 +33,7 @@ import com.gentics.cr.util.indexing.DummyIndexLocationFactory;
 public class FileSystemUpdateJobTest {
 
 	private static final Logger LOGGER = Logger.getLogger(FileSystemUpdateCheckerTest.class);
-	
+
 	static CRConfigUtil config = new CRConfigUtil();
 	static ConcurrentHashMap<String, CRConfigUtil> configMap = new ConcurrentHashMap<String, CRConfigUtil>();
 
@@ -45,16 +44,16 @@ public class FileSystemUpdateJobTest {
 	static File directory;
 
 	String fileContent;
-	
+
 	@BeforeClass
 	public static void init() throws URISyntaxException {
 		ConfigDirectory.useThis();
 	}
-	
 
 	@Test
 	public void testUpdateFiles() throws CRException, FileNotFoundException, URISyntaxException {
-		directory = new File(FileSystemUpdateJobTest.class.getResource("flatdirectory" + File.separator +  "outdated.file").toURI()).getParentFile();
+		directory = new File(FileSystemUpdateJobTest.class.getResource("flatdirectory" + File.separator + "outdated.file").toURI())
+				.getParentFile();
 		CRConfigUtil updateJobConfig = new CRConfigUtil();
 		updateJobConfig.set("directory", directory.getPath());
 		//TODO add test for ignorePubDir false
@@ -70,17 +69,19 @@ public class FileSystemUpdateJobTest {
 		config.setSubConfig("rp", requestProcessorsConfig);
 		config.set("updateattribute", "timestamp");
 		configMap.put("test", config);
-		
+
 		indexLocation = DummyIndexLocationFactory.getDummyIndexLocation(config);
 		job = new FileSystemUpdateJob(config, indexLocation, configMap);
-		
+
 		Collection<CRResolvableBean> objects = listFileBeans(directory, ".*\\.file");
 		StaticObjectHolderRequestProcessor.setObjects(objects);
 		job.indexCR(indexLocation, config);
 		assertContentEquals(config, "outdated.file", new File(directory, "outdated.file"));
-
+		//Check status
+		assertEquals(job.getObjectsDone(), 1);
+		assertTrue(job.isModifiedIndex());
 	}
-	
+
 	/**
 	 * Check that the bean in the RequestProcessor has the given content.
 	 * @param config - configuration to get the RequestProcessor from
@@ -88,15 +89,14 @@ public class FileSystemUpdateJobTest {
 	 * @param content - content that the bean should have
 	 * @throws CRException if the RequestProcessor cannot be initialized from the configuration
 	 */
-	private void assertContentEquals(final CRConfigUtil config, final String filename, final String content)
-			throws CRException {
+	private void assertContentEquals(final CRConfigUtil config, final String filename, final String content) throws CRException {
 		try {
 			assertContentEquals(config, filename, content, null);
 		} catch (FileNotFoundException e) {
 			LOGGER.error("We got a FileNotFoundException without providing a file. Please Check the tests.", e);
 		}
 	}
-	
+
 	/**
 	 * Check that the bean in the RequestProcessor has the same content as the file.
 	 * @param config - configuration to get the RequestProcessor from
@@ -105,11 +105,11 @@ public class FileSystemUpdateJobTest {
 	 * @throws CRException if the RequestProcessor cannot be initialized from the configuration
 	 * @throws FileNotFoundException if the file cannot be opened with an FileInputStream 
 	 */
-	private void assertContentEquals(final CRConfigUtil config, final String filename, final File file)
-			throws CRException, FileNotFoundException {
+	private void assertContentEquals(final CRConfigUtil config, final String filename, final File file) throws CRException,
+			FileNotFoundException {
 		assertContentEquals(config, filename, null, file);
 	}
-	
+
 	/**
 	 * 
 	 * @param config
@@ -133,19 +133,22 @@ public class FileSystemUpdateJobTest {
 		CRResolvableBean bean;
 		if (path != null && !path.equals("")) {
 			bean = config.getNewRequestProcessorInstance(1).getFirstMatchingResolvable(
-					new CRRequest("object.filename == '" + name + "' AND object.pub_dir == '" + path + "'"));
+				new CRRequest("object.filename == '" + name + "' AND object.pub_dir == '" + path + "'"));
 		} else {
 			RequestProcessor rp = config.getNewRequestProcessorInstance(1);
 			assertNotNull("Cannot get RequestProcessor from config", rp);
 			bean = rp.getFirstMatchingResolvable(new CRRequest("object.filename == '" + name + "'"));
 		}
-		assertEquals("The contents of the file do not match the content of the RequestProcessor. Therefore the file was not updated.",
-				bean.get("binarycontent"), filecontent);
+		assertEquals(
+			"The contents of the file do not match the content of the RequestProcessor. Therefore the file was not updated.",
+			bean.get("binarycontent"),
+			filecontent);
 	}
 
 	@Test
 	public void testUpdateFilesWithPubDir() throws URISyntaxException, FileNotFoundException, CRException {
-		directory = new File(FileSystemUpdateJobTest.class.getResource("structureddirectory" + File.separator +  "outdated.file").toURI()).getParentFile();
+		directory = new File(FileSystemUpdateJobTest.class.getResource("structureddirectory" + File.separator + "outdated.file").toURI())
+				.getParentFile();
 		CRConfigUtil updateJobConfig = new CRConfigUtil();
 		updateJobConfig.set("directory", directory.getPath());
 		//TODO add test for ignorePubDir false
@@ -161,10 +164,10 @@ public class FileSystemUpdateJobTest {
 		config.setSubConfig("rp", requestProcessorsConfig);
 		config.set("updateattribute", "timestamp");
 		configMap.put("test", config);
-		
+
 		indexLocation = DummyIndexLocationFactory.getDummyIndexLocation(config);
 		job = new FileSystemUpdateJob(config, indexLocation, configMap);
-		
+
 		Collection<CRResolvableBean> objects = listFileBeans(directory, ".*\\.file");
 		objects.add(createFileBean("new.txt", "a", "10007", "bean a", getTimestamp()));
 		objects.add(createFileBean("new.txt", "b", "10007", "bean b", getTimestamp()));
@@ -176,17 +179,18 @@ public class FileSystemUpdateJobTest {
 		//Check bean contents in the RequestProcessor with the filesystem
 		assertContentEquals(config, "a" + File.separator + "new.txt", new File(directory, "a/new.txt"));
 		assertContentEquals(config, "b" + File.separator + "new.txt", new File(directory, "b/new.txt"));
+		//Check status
+		assertEquals(job.getObjectsDone(), 3);
+		assertTrue(job.isModifiedIndex());
 	}
 
 	private Integer getTimestamp() {
 		return (int) (new Date().getTime() / 1000L);
 	}
-	
+
 	private Integer getTimestamp(File file) {
 		return (int) (file.lastModified() / 1000L);
 	}
-	
-	
 
 	private CRResolvableBean createFileBean(String filename, String pubDir, String objecttype, String content, Integer timestamp) {
 		CRResolvableBean bean = new CRResolvableBean();
@@ -206,19 +210,19 @@ public class FileSystemUpdateJobTest {
 		Vector<CRResolvableBean> beans = new Vector<CRResolvableBean>();
 		for (File file : DirectoryScanner.listFiles(directory, filter)) {
 			if (file.getName().equals("outdated.file")) {
-				beans.add(createFileBean(file.getName(),
-						directory.toURI().relativize(file.getParentFile().toURI()).toString(),
-						FileTypeDetector.getObjType(file),
-						"" + Math.random(),
-						getTimestamp(file) + 1000
-					));
+				beans.add(createFileBean(
+					file.getName(),
+					directory.toURI().relativize(file.getParentFile().toURI()).toString(),
+					FileTypeDetector.getObjType(file),
+					"" + Math.random(),
+					getTimestamp(file) + 1000));
 			} else {
-				beans.add(createFileBean(file.getName(),
-						directory.toURI().relativize(file.getParentFile().toURI()).toString(),
-						FileTypeDetector.getObjType(file),
-						"",
-						getTimestamp(file)
-					));
+				beans.add(createFileBean(
+					file.getName(),
+					directory.toURI().relativize(file.getParentFile().toURI()).toString(),
+					FileTypeDetector.getObjType(file),
+					"",
+					getTimestamp(file)));
 			}
 		}
 		return beans;

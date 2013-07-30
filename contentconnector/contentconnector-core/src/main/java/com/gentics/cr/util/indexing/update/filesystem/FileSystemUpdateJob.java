@@ -139,6 +139,7 @@ public class FileSystemUpdateJob extends AbstractUpdateCheckerJob {
 						os.write(bean.getBinaryContent());
 						os.close();
 					}
+					status.setObjectsDone(status.getObjectsDone() + 1);
 				} catch (Exception e) {
 					throw new CRException("Cannot update the index.", e);
 				}
@@ -152,6 +153,7 @@ public class FileSystemUpdateJob extends AbstractUpdateCheckerJob {
 				}
 				file.mkdirs();
 			}
+			modifiedIndex = status.getObjectsDone() != 0;
 		}
 
 	}

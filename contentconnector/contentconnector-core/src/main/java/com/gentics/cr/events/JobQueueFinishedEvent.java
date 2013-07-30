@@ -1,13 +1,11 @@
 package com.gentics.cr.events;
 
-import org.apache.commons.lang.StringUtils;
-
 /**
  * Event after the job-queue has been finished.
  * @author voglerc
  *
  */
-public class JobQueueFinishedEvent extends Event<String> {
+public class JobQueueFinishedEvent extends Event<JobQueueMetadata> {
 
 	/**
 	 * unique name.
@@ -15,25 +13,21 @@ public class JobQueueFinishedEvent extends Event<String> {
 	public static final String JOBQUEUE_FINISHED_EVENT_TYPE = "JOBQUEUEFINISHEDEVENT";
 
 	/**
-	 * index name.
+	 * jobqueue-metadata. 
 	 */
-	private String index;
+	private JobQueueMetadata jobQueueMetadata;
 
 	/**
 	 * Creates a new event with the given identifyer.
-	 * @param identifyer identifyer
+	 * @param jobQueueMetadata metadata 
 	 */
-	public JobQueueFinishedEvent(final String identifyer) {
-		if (!StringUtils.isEmpty(identifyer) && identifyer.startsWith("index")) {
-			index = StringUtils.split(identifyer, ".")[1];
-		} else {
-			index = identifyer;
-		}
+	public JobQueueFinishedEvent(final JobQueueMetadata jobQueueMetadata) {
+		this.jobQueueMetadata = jobQueueMetadata;
 	}
 
 	@Override
-	public String getData() {
-		return this.index;
+	public JobQueueMetadata getData() {
+		return this.jobQueueMetadata;
 	}
 
 	@Override

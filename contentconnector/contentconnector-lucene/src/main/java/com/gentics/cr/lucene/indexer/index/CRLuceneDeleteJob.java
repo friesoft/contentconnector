@@ -54,6 +54,7 @@ public class CRLuceneDeleteJob extends AbstractUpdateCheckerJob {
 					ta.clearTaxonomy();
 				}
 				luceneIndexLoccation.resetIndexJobCreationTimes();
+				modifiedIndex = true;
 			} catch (IOException e) {
 				LOG.error("Could not clear index", e);
 			} finally {

@@ -105,6 +105,7 @@ public class IndexCompressor extends Thread {
 	 */
 	public void compress(final String index) {
 		try {
+			LOGGER.info("Start compressing index " + index);
 			indexLocation.checkLock();
 			if (indexDirectory.canWrite()) {
 				lockIndex();
@@ -127,6 +128,7 @@ public class IndexCompressor extends Thread {
 				if (compressedIndexTempFile.exists()) {
 					compressedIndexTempFile.delete();
 				}
+				LOGGER.info("Compressing index " + index + " finished");
 			} else {
 				LOGGER.error("Cannot lock the index directory (" + index + ") to ensure the consistency of the archive.");
 			}
