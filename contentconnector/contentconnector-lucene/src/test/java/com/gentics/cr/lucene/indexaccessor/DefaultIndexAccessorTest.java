@@ -178,70 +178,70 @@ public class DefaultIndexAccessorTest {
 	}
 
 
-    private Exception otherThreadException;
+	private Exception otherThreadException;
 
 
-    /**
-     * Tries to create a segfault as described in PSLEAP-481.
-     * @throws Exception when test fails
-     */
-    @Test
-    public void testParallelAccess() throws Exception {
-        File reopenIndexLocation = testFolder.newFolder("reopenIndexLocation");
-        File originalIndex = new File(this.getClass().getResource("orignalIndex").toURI());
-        FileUtils.copyDirectory(originalIndex, reopenIndexLocation);
-        FSDirectory fsDir = FSDirectory.open(reopenIndexLocation);
-        factory.createAccessor(fsDir, analyzer);
+	/**
+	 * Tries to create a segfault as described in PSLEAP-481.
+	 *
+	 * @throws Exception when test fails
+	 */
+	@Test
+	public void testParallelAccess() throws Exception {
+		File reopenIndexLocation = testFolder.newFolder("reopenIndexLocation");
+		File originalIndex = new File(this.getClass().getResource("orignalIndex").toURI());
+		FileUtils.copyDirectory(originalIndex, reopenIndexLocation);
+		FSDirectory fsDir = FSDirectory.open(reopenIndexLocation);
+		factory.createAccessor(fsDir, analyzer);
 
-        for (int i = 0; i < 50; i++) {
-
-
-            final IndexAccessor accessor = factory.getAccessor(fsDir);
-            assertNotNull(accessor);
-
-            IndexWriter writer = accessor.getWriter();
-            writer.addDocument(new Document());
-            accessor.release(writer);
-
-            final IndexReader reader = accessor.getReader(false);
+		for (int i = 0; i < 50; i++) {
 
 
-            final CyclicBarrier sync = new CyclicBarrier(2);
+			final IndexAccessor accessor = factory.getAccessor(fsDir);
+			assertNotNull(accessor);
 
-            Thread t = new Thread() {
-                @Override
-                public void run() {
-                    try {
-                        reader.document(0);
-                        sync.await();
-                        Thread.sleep(((int)Math.random() * 100));
-                        reader.document(0);
-                        sync.await();
-                    } catch (Exception e) {
-                        sync.reset();
-                        otherThreadException = e;
-                    }
-                }
-            };
+			IndexWriter writer = accessor.getWriter();
+			writer.addDocument(new Document());
+			accessor.release(writer);
 
-            t.start();
+			final IndexReader reader = accessor.getReader(false);
 
 
+			final CyclicBarrier sync = new CyclicBarrier(2);
 
-            try {
-                reader.document(0);
-                sync.await();
-                Thread.sleep(((int)Math.random() * 100));
-                reader.close();
-                sync.await();
-                if (otherThreadException != null) {
-                    throw otherThreadException;
-                }
-            } catch (BrokenBarrierException e) {
-            } catch (AlreadyClosedException e) {
+			Thread t = new Thread() {
+				@Override
+				public void run() {
+					try {
+						reader.document(0);
+						sync.await();
+						Thread.sleep(((int) Math.random() * 100));
+						reader.document(0);
+						sync.await();
+					} catch (Exception e) {
+						sync.reset();
+						otherThreadException = e;
+					}
+				}
+			};
 
-            }
-        }
-    }
+			t.start();
+
+
+			try {
+				reader.document(0);
+				sync.await();
+				Thread.sleep(((int) Math.random() * 100));
+				reader.close();
+				sync.await();
+				if (otherThreadException != null) {
+					throw otherThreadException;
+				}
+			} catch (BrokenBarrierException e) {
+			} catch (AlreadyClosedException e) {
+
+			}
+		}
+	}
 
 }
