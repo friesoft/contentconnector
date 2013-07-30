@@ -215,7 +215,7 @@ public class DefaultIndexAccessorTest {
 					try {
 						reader.document(0);
 						sync.await();
-						Thread.sleep(((int) Math.random() * 100));
+						Thread.sleep((int) (Math.random() * 100));
 						reader.document(0);
 						sync.await();
 					} catch (Exception e) {
@@ -231,7 +231,7 @@ public class DefaultIndexAccessorTest {
 			try {
 				reader.document(0);
 				sync.await();
-				Thread.sleep(((int) Math.random() * 100));
+				Thread.sleep((int) (Math.random() * 100));
 				reader.close();
 				sync.await();
 				if (otherThreadException != null) {
