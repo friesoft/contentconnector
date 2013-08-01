@@ -25,7 +25,7 @@ public class RESTBinaryContainerTest{
 	private static HSQLTestHandler testHandler;
 	
 	@BeforeClass
-	public static void setUp() throws CRException, URISyntaxException {
+	public static void setUp() throws Exception, URISyntaxException {
 		CRConfigUtil config = HSQLTestConfigFactory.getDefaultHSQLConfiguration(RESTBinaryContainerTest.class.getName());
 		config.set("rp.1.rpClass", "com.gentics.cr.CRRequestProcessor");
 		container = new RESTBinaryContainer(config);
@@ -39,7 +39,7 @@ public class RESTBinaryContainerTest{
 		testBean.set("binarycontent", file);
 		testBean.set("mimetype", "image/png");
 		
-		testHandler.createBean(testBean);
+		testHandler.createBean(testBean, null);
 		
 		CRResolvableBean testBean2 = new CRResolvableBean();
 		testBean2.setObj_type("10008");
@@ -49,7 +49,7 @@ public class RESTBinaryContainerTest{
 		testBean2.set("binarycontent", file2);
 		testBean2.set("mimetype", "text/plain");
 		
-		testHandler.createBean(testBean2);
+		testHandler.createBean(testBean2, null);
 	}
 
 	@Test

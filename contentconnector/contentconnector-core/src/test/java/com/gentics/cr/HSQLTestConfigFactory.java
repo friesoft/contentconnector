@@ -3,6 +3,7 @@ package com.gentics.cr;
 import java.io.File;
 import java.net.URISyntaxException;
 
+import com.gentics.DefaultTestConfiguration;
 import com.gentics.cr.configuration.EnvironmentConfiguration;
 import com.gentics.cr.plink.PlinkProcessor;
 
@@ -17,8 +18,8 @@ public class HSQLTestConfigFactory {
 	 * @return
 	 * @throws URISyntaxException 
 	 */
-	public static final CRConfigUtil getDefaultHSQLConfiguration() throws URISyntaxException {
-		return getDefaultHSQLConfiguration("mytestdatasource");
+	public static final CRConfigUtil getDefaultHSQLConfiguration(Class testClazz) throws URISyntaxException {
+		return getDefaultHSQLConfiguration("mytestdatasource" + testClazz.toString());
 	}
 	
 	/**
@@ -29,7 +30,7 @@ public class HSQLTestConfigFactory {
 	 * @throws URISyntaxException 
 	 */
 	public static final CRConfigUtil getDefaultHSQLConfiguration(String dsName) throws URISyntaxException {
-		EnvironmentConfiguration.setConfigPath(new File(HSQLTestConfigFactory.class.getResource("conf/gentics").toURI()).getAbsolutePath());
+		EnvironmentConfiguration.setConfigPath(new File(DefaultTestConfiguration.class.getResource("conf/gentics").getFile()).getAbsolutePath());
 		EnvironmentConfiguration.loadEnvironmentProperties();
 
 		CRConfigUtil config = new CRConfigUtil();

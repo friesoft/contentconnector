@@ -19,14 +19,12 @@ package org.apache.lucene.search.spell;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.IndexReader.FieldOption;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Term;
@@ -38,9 +36,12 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.store.AlreadyClosedException;
 import org.apache.lucene.store.Directory;
+import org.apache.lucene.util.BytesRef;
+import org.apache.lucene.util.BytesRefIterator;
 
 import com.gentics.cr.lucene.indexaccessor.IndexAccessor;
 import com.gentics.cr.lucene.indexer.index.LuceneIndexLocation;
+import com.gentics.cr.lucene.util.CRLuceneUtil;
 
 /**
  * <p>
@@ -293,14 +294,14 @@ public class CustomSpellChecker implements java.io.Closeable {
 			int minfrq = this.minDFreq;
 			final int lengthWord = word.length();
 
-			Collection<String> fieldnames = null;
+			List<String> fieldnames = null;
 
 			int intfreq = 0;
 			if (ir != null) {
 				if (field != null) {
 					if ("all".equalsIgnoreCase(field) || (field != null && field.contains(","))) {
 						if ("all".equalsIgnoreCase(field)) {
-							fieldnames = ir.getFieldNames(FieldOption.ALL);
+							fieldnames = CRLuceneUtil.getFieldNames(ir);
 						} else {
 							String[] arr = field.split(",");
 							fieldnames = Arrays.asList(arr);
@@ -526,26 +527,27 @@ public class CustomSpellChecker implements java.io.Closeable {
 		synchronized (modifyCurrentIndexLock) {
 			ensureOpen();
 
-			IndexAccessor accessor = null;
-			IndexWriter writer = null;
-			IndexSearcher indexSearcher = null;
+			final IndexAccessor accessor = this.spellIndex.getAccessor();
+			final IndexWriter writer = accessor.getWriter();
+			writer.setMergeFactor(300);
+			final IndexSearcher indexSearcher = (IndexSearcher) accessor.getPrioritizedSearcher();
 			int obj_count = 0;
-			try {
-				accessor = this.spellIndex.getAccessor();
-				writer = accessor.getWriter();
-				indexSearcher = (IndexSearcher) accessor.getPrioritizedSearcher();
 
-				Iterator<String> iter = dict.getWordsIterator();
-				while (iter.hasNext()) {
-					String word = iter.next();
+			try {
+				BytesRefIterator iter = dict.getWordsIterator();
+				BytesRef ref = iter.next();
+				while (ref != null) {
+					String word = ref.utf8ToString();
 
 					int len = word.length();
 					if (len < THREE) {
+						ref = iter.next();
 						continue; // too short we bail but "too long" is fine...
 					}
 
 					if (indexSearcher.docFreq(F_WORD_TERM.createTerm(word)) > 0) {
 						// if the word already exist in the gramindex
+						ref = iter.next();
 						continue;
 					}
 
@@ -553,22 +555,18 @@ public class CustomSpellChecker implements java.io.Closeable {
 					Document doc = createDocument(word, getMin(len), getMax(len));
 					writer.addDocument(doc);
 					obj_count++;
+					ref = iter.next();
 				}
 
 			} finally {
 				// if documents where added to the index create a reopen file and
 				// optimize the writer
 				if (obj_count > 0) {
+					writer.optimize();
 					this.spellIndex.createReopenFile();
 				}
-				if(accessor != null) {
-					if (writer != null) {
-						accessor.release(writer);
-					}
-					if (indexSearcher != null) {
-						accessor.release(indexSearcher);
-					}
-				}
+				accessor.release(writer);
+				accessor.release(indexSearcher);
 			}
 		}
 	}
