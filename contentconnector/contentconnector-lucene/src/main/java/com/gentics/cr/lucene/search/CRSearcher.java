@@ -204,7 +204,7 @@ public class CRSearcher {
 		} else if (objRetrieveFieldValues instanceof List) {
 			retrieveFieldValues = (List<String>) config.get(RETRIEVE_FIELD_VALUES_KEY);
 		} else {
-			log.error("'" + RETRIEVE_FIELD_VALUES_KEY + "' of unsupported type.");
+			log.error("'" + RETRIEVE_FIELD_VALUES_KEY + "' of unsupported type " + objRetrieveFieldValues.getClass());
 		}
 
 
