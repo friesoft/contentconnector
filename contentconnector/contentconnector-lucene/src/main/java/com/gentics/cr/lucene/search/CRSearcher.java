@@ -203,10 +203,9 @@ public class CRSearcher {
 			retrieveFieldValues = Arrays.asList(((String) objRetrieveFieldValues).split(","));
 		} else if (objRetrieveFieldValues instanceof List) {
 			retrieveFieldValues = (List<String>) config.get(RETRIEVE_FIELD_VALUES_KEY);
-		} else {
+		} else if (objRetrieveFieldValues != null) {
 			log.error("'" + RETRIEVE_FIELD_VALUES_KEY + "' of unsupported type " + objRetrieveFieldValues.getClass());
 		}
-
 
 	}
 
