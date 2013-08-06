@@ -62,6 +62,20 @@ public class LanguageIdentifyerTest {
 		testFile("de", "test-excel-de.txt");
 		testFile("de", "test-word-de.txt");
 	}
+	
+	@Test
+	public void testDefaultAndAllowedLanguages() throws CRException {
+		config = new GenericConfiguration();
+		config.set("attribute", "content");
+		config.set("langattribute", "lang");
+		config.set("defaultlanguage", "und");
+		config.set("allowedlanguages", "de,und");
+		
+		t = new LanguageIdentifyer(config);
+		testString("de", "Hallo das ist ein Test");
+		testString("und", "Hello this is a test");
+
+	}
 
 	private void testFile(final String lang, final String filename) throws Exception {
 		Scanner scanner = new Scanner(ClassLoader.getSystemResourceAsStream(filename), "UTF-8");
@@ -95,6 +109,5 @@ public class LanguageIdentifyerTest {
 
 	@After
 	public void tearDown() throws Exception {
-
 	}
 }
