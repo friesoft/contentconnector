@@ -50,10 +50,10 @@ public class CRQueryParserTest extends AbstractLuceneTest {
 
 		documents = new ArrayList<ComparableDocument>();
 		/* 0 */documents.add(new ComparableDocument(lucene.add(
-			SimpleLucene.CONTENT_ATTRIBUTE + ":word9 word1",
+			SimpleLucene.CONTENT_ATTRIBUTE + ":word9 word1 exact",
 			"node_id:1")));
 		/* 1 */documents.add(new ComparableDocument(lucene.add(
-			SimpleLucene.CONTENT_ATTRIBUTE + ":word2 word9",
+			SimpleLucene.CONTENT_ATTRIBUTE + ":word2 word9 exactamente",
 			"node_id:1")));
 		/* 2 */documents.add(new ComparableDocument(lucene.add(
 			SimpleLucene.CONTENT_ATTRIBUTE + ":word3",
@@ -83,7 +83,7 @@ public class CRQueryParserTest extends AbstractLuceneTest {
 			"node_id:3"))); //04.05.2011 13:59:57
 		/* 8 */documents.add(new ComparableDocument(lucene.add(
 			SimpleLucene.CONTENT_ATTRIBUTE + ":newword 01/23456789",
- "node_id:11")));
+				"node_id:11")));
 		/* 9 */documents.add(new ComparableDocument(lucene.add("categoryId:category-with-minus", SimpleLucene.CONTENT_ATTRIBUTE
 				+ ":content")));
 
@@ -99,6 +99,27 @@ public class CRQueryParserTest extends AbstractLuceneTest {
 
 		matchedDocuments = wrapComparable(lucene.find(parser.parse("word1&word9")));
 		containsOnly(matchedDocuments, documents.get(0));
+	}
+
+	public void testLogicalOperator() throws ParseException, CorruptIndexException, IOException {
+		Collection<ComparableDocument> matchedDocuments = wrapComparable(lucene.find(parser.parse("word1 OR word3")));
+		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(0), documents.get(2) });
+
+		matchedDocuments = wrapComparable(lucene.find(parser.parse("word1 AND word9")));
+		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(0) });
+
+		//		matchedDocuments = wrapComparable(lucene.find(parser.parse("word9 NOT word1")));
+		//		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(1) });
+
+		crRequest.set(CRRequest.WORDMATCH_KEY, "beg");
+		parser = new CRQueryParser(LuceneVersion.getVersion(), SEARCHED_ATTRIBUTES, STANDARD_ANALYZER, crRequest);
+
+		matchedDocuments = wrapComparable(lucene.find(parser.parse("exact")));
+		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(0), documents.get(1) });
+
+		matchedDocuments = wrapComparable(lucene.find(parser.parse("'exact'")));
+		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(0) });
+
 	}
 
 	public void testSearchAttributes() throws ParseException, CorruptIndexException, IOException {
