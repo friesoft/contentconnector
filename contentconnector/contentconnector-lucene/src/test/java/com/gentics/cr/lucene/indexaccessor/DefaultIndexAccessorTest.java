@@ -6,8 +6,8 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.search.Searcher;
 import org.apache.lucene.store.AlreadyClosedException;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.RAMDirectory;
@@ -107,7 +107,7 @@ public class DefaultIndexAccessorTest {
 		assertNotNull(accessor);
 
 		IndexReader reader = accessor.getReader(true);
-		Searcher searcher = accessor.getSearcher(reader);
+		IndexSearcher searcher = accessor.getSearcher(reader);
 
 		accessor.release(searcher);
 	}
@@ -120,7 +120,8 @@ public class DefaultIndexAccessorTest {
 		assertNotNull(accessor);
 
 		IndexReader reader = accessor.getReader(true);
-		Searcher searcher = accessor.getSearcher();
+		assertNotNull(reader);
+		IndexSearcher searcher = accessor.getSearcher();
 
 		accessor.release(searcher);
 	}
@@ -133,9 +134,10 @@ public class DefaultIndexAccessorTest {
 		assertNotNull(accessor);
 
 		IndexReader reader = accessor.getReader(true);
-		Searcher searcher = accessor.getSearcher();
+		assertNotNull(reader);
+		IndexSearcher searcher = accessor.getSearcher();
 
-		Searcher searcher2 = accessor.getSearcher();
+		IndexSearcher searcher2 = accessor.getSearcher();
 
 		assertEquals(searcher, searcher2);
 
