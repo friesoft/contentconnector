@@ -51,6 +51,7 @@ public class DidyoumeanIndexDeleteJob extends AbstractUpdateCheckerJob {
 		try {
 			spellchecker.clearIndex();
 			didyoumean.getDidyoumeanLocation().resetIndexJobCreationTimes();
+			didyoumean.getDidyoumeanLocation().getAccessor().reopen();
 		} catch (IOException e) {
 			LOG.error("Could not clear index", e);
 		}
