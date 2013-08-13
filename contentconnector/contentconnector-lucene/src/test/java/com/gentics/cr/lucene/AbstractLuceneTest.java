@@ -24,7 +24,7 @@ public abstract class AbstractLuceneTest extends TestCase {
 	private ComparableDocument cd2;
 	private ComparableDocument cd3;
 
-	public AbstractLuceneTest(String name) {
+	public AbstractLuceneTest(final String name) {
 		super(name);
 	}
 
@@ -55,18 +55,18 @@ public abstract class AbstractLuceneTest extends TestCase {
 		containsOnly(documents, new ComparableDocument(document1));
 	}
 
-	protected void containsAll(Collection<ComparableDocument> matchedDocuments, ComparableDocument[] documents) {
+	protected void containsAll(final Collection<ComparableDocument> matchedDocuments, final ComparableDocument[] documents) {
 		assertTrue(matchedDocuments.containsAll(Arrays.asList(documents)));
 		assertTrue(matchedDocuments.size() == documents.length);
 	}
 
-	protected void containsOnly(Collection<ComparableDocument> matchedDocuments, ComparableDocument containedDocument) {
+	protected void containsOnly(final Collection<ComparableDocument> matchedDocuments, final ComparableDocument containedDocument) {
 		assertTrue(matchedDocuments.contains(containedDocument));
 		assertTrue(matchedDocuments.size() == 1);
 
 	}
 	
-	public Collection<ComparableDocument> wrapComparable(Collection<Document> docColl) {
+	public Collection<ComparableDocument> wrapComparable(final Collection<Document> docColl) {
 		Collection<ComparableDocument> ret = new Vector<ComparableDocument>();
 		for (Document d : docColl) {
 			ret.add(new ComparableDocument(d));

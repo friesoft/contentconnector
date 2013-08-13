@@ -108,19 +108,36 @@ public class CRQueryParserTest extends AbstractLuceneTest {
 		matchedDocuments = wrapComparable(lucene.find(parser.parse("word1 AND word9")));
 		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(0) });
 
-		//		matchedDocuments = wrapComparable(lucene.find(parser.parse("word9 NOT word1")));
-		//		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(1) });
+		matchedDocuments = wrapComparable(lucene.find(parser.parse("word9 OR word1")));
+		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(0), documents.get(1), documents.get(2) });
 
+		matchedDocuments = wrapComparable(lucene.find(parser.parse("word9 NOT word1")));
+		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(1), documents.get(2) });
+	}
+
+	public void testManualUseOfWildcard() throws ParseException, CorruptIndexException, IOException {
+		crRequest.set(CRRequest.WORDMATCH_KEY, "beg");
+		parser = new CRQueryParser(LuceneVersion.getVersion(), SEARCHED_ATTRIBUTES, STANDARD_ANALYZER, crRequest);
+		parser.setAllowLeadingWildcard(true);
+
+		Collection<ComparableDocument> matchedDocuments = wrapComparable(lucene.find(parser.parse("*act AND word")));
+		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(0) });
+
+	}
+
+	public void testExactSearch() throws ParseException, CorruptIndexException, IOException {
 		crRequest.set(CRRequest.WORDMATCH_KEY, "beg");
 		parser = new CRQueryParser(LuceneVersion.getVersion(), SEARCHED_ATTRIBUTES, STANDARD_ANALYZER, crRequest);
 
-		matchedDocuments = wrapComparable(lucene.find(parser.parse("exact")));
+		//		System.out.println("parsed query: " + parser.parse("exact").toString());
+		Collection<ComparableDocument> matchedDocuments = wrapComparable(lucene.find(parser.parse("exact")));
 		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(0), documents.get(1) });
 
 		matchedDocuments = wrapComparable(lucene.find(parser.parse("'exact'")));
 		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(0) });
 
 	}
+
 
 	public void testSearchAttributes() throws ParseException, CorruptIndexException, IOException {
 		Collection<ComparableDocument> matchedDocuments = wrapComparable(lucene.find(parser.parse("word1")));

@@ -61,6 +61,19 @@ public class CRQueryParser extends QueryParser {
 	 */
 	private static final Logger LOGGER = Logger.getLogger(CRQueryParser.class);
 
+
+	private static final String seperatorCharacterClass = " \\(\\)";
+
+	/** Matches an attribute value pair. */
+	private static final Pattern PATTERN_ATTRIBUTE_VALUE = Pattern.compile("([" + seperatorCharacterClass + "]*)"
+			+ "([^:]+:(?:\\([^\\)]+\\)|\\[[^\\]]+\\]|\"[^\"]+\")|\"[^\"]+\"|[^" + seperatorCharacterClass + "]+)" + "(["
+			+ seperatorCharacterClass + "]*)");
+	/** Matches attribute value pair where exact search with quotes was used or were a wildcard was used. */
+	private static final Pattern PATTERN_WILDCARD_OR_EXACT_SEARCH = Pattern.compile("[^:]+:(\"[^\"]+\"|.*\\*.*)");
+
+	/** Used for appending the wordmatch wildcards. */
+	private static final Pattern PATTERN_WILDCARD_APPENDER = Pattern.compile("(.*:\\(?)?([^: \\(\\)]+)");
+
 	/**
 	 * initialize a CRQeryParser with multiple search attributes.
 	 * @param version version of lucene
@@ -221,9 +234,10 @@ public class CRQueryParser extends QueryParser {
 			String charsAfterValue = valueMatcher.group(THREE);
 			if (!"AND".equalsIgnoreCase(value) && !"OR".equalsIgnoreCase(value) && !"NOT".equalsIgnoreCase(value)
 					&& attributesToSearchIn.contains(attribute)) {
-				if (!value.matches("[^:]+:\"[^\"]+\"")) {
+				// only add wildcard if no wildcard is in term and we do not use exact search (term in quotes)
+				if (!PATTERN_WILDCARD_OR_EXACT_SEARCH.matcher(value).matches()) {
 					String replacement = Matcher.quoteReplacement(charsBeforeValue
-							+ value.replaceAll("(.*:\\(?)?([^: \\(\\)]+)", "$1" + appendToWordBegin + "$2" + appendToWordEnd)
+							+ PATTERN_WILDCARD_APPENDER.matcher(value).replaceAll("$1" + appendToWordBegin + "$2" + appendToWordEnd)
 							+ charsAfterValue);
 					valueMatcher.appendReplacement(newQuery, replacement);
 				}
@@ -239,11 +253,7 @@ public class CRQueryParser extends QueryParser {
 	 * @return matcher.
 	 */
 	protected Matcher getValueMatcher(final String query) {
-		String seperatorCharacterClass = " \\(\\)";
-		Pattern valuePattern = Pattern.compile("([" + seperatorCharacterClass + "]*)"
-				+ "([^:]+:(?:\\([^\\)]+\\)|\\[[^\\]]+\\]|\"[^\"]+\")|\"[^\"]+\"|[^" + seperatorCharacterClass + "]+)" + "(["
-				+ seperatorCharacterClass + "]*)");
-		Matcher valueMatcher = valuePattern.matcher(query);
+		Matcher valueMatcher = PATTERN_ATTRIBUTE_VALUE.matcher(query);
 		return valueMatcher;
 	}
 
