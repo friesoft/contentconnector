@@ -26,7 +26,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.LogMergePolicy;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
@@ -529,7 +529,9 @@ public class CustomSpellChecker implements java.io.Closeable {
 
 			final IndexAccessor accessor = this.spellIndex.getAccessor();
 			final IndexWriter writer = accessor.getWriter();
-			writer.setMergeFactor(300);
+			if (writer.getConfig().getMergePolicy() instanceof LogMergePolicy) {
+				writer.setMergeFactor(300);
+			}
 			final IndexSearcher indexSearcher = (IndexSearcher) accessor.getPrioritizedSearcher();
 			int obj_count = 0;
 
@@ -702,6 +704,7 @@ public class CustomSpellChecker implements java.io.Closeable {
 	 * Stops the IndexLocation used by this SpellChecker.
 	 * 
 	 */
+	@Override
 	public final void close() {
 		ensureOpen();
 		closed = true;
