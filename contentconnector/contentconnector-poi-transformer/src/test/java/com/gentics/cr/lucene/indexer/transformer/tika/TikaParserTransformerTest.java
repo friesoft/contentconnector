@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.poi.util.IOUtils;
+import org.bouncycastle.util.Strings;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.gentics.cr.CRResolvableBean;
@@ -25,6 +27,8 @@ public class TikaParserTransformerTest extends AbstractTransformerTest {
 	public void init() throws Exception {
 		config = new GenericConfiguration();
 		config.set("contentattribute", BINARY_ATTRIBUTE);
+		config.set("detectLanguages", "true");
+		config.set("allowedLanguages", "de,en");
 
 		t = new TikaParserTransformer(config);
 	}
@@ -60,7 +64,17 @@ public class TikaParserTransformerTest extends AbstractTransformerTest {
 		testDocument("testdoc.dotx");
 	}
 
-	private void testDocument(String filename) throws IOException, CRException {
+	// identifier.isReasonablyCertain() evaluates to false
+	@Ignore
+	@Test
+	public void testLanguageIdentifier() throws IOException, CRException {
+		CRResolvableBean bean = new CRResolvableBean();
+		bean.set(BINARY_ATTRIBUTE, Strings.toByteArray("Das ist ein Test."));
+		t.processBean(bean);
+		Assert.assertEquals("de", bean.get("languagecode"));
+	}
+
+	private void testDocument(final String filename) throws IOException, CRException {
 		CRResolvableBean bean = new CRResolvableBean();
 		bean.set(BINARY_ATTRIBUTE, getContentFromFile(filename));
 		t.processBean(bean);
@@ -102,7 +116,7 @@ public class TikaParserTransformerTest extends AbstractTransformerTest {
 		testPresentation("testdoc.pptx");
 	}
 
-	private void testPresentation(String filename) throws IOException, CRException {
+	private void testPresentation(final String filename) throws IOException, CRException {
 		CRResolvableBean bean = new CRResolvableBean();
 		bean.set(BINARY_ATTRIBUTE, getContentFromFile(filename));
 		t.processBean(bean);
@@ -134,7 +148,7 @@ public class TikaParserTransformerTest extends AbstractTransformerTest {
 		testSpreadsheet("testdoc.xltx");
 	}
 
-	private void testSpreadsheet(String filename) throws IOException, CRException {
+	private void testSpreadsheet(final String filename) throws IOException, CRException {
 		CRResolvableBean bean = new CRResolvableBean();
 		bean.set(BINARY_ATTRIBUTE, getContentFromFile(filename));
 		t.processBean(bean);
