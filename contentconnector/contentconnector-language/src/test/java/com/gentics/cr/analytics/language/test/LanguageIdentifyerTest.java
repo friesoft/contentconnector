@@ -90,7 +90,7 @@ public class LanguageIdentifyerTest {
 					item = new StringBuilder();
 				}
 				if (item != null) {
-					item.append(System.lineSeparator());
+					item.append("\n");
 					item.append(s);
 				}
 			}
