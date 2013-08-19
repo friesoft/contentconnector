@@ -39,7 +39,7 @@ public class CRQueryParser extends QueryParser {
 	 * special characters are for now  , - / \
 	 * <br>do not add wildcard symbols here as that would remove them from the query in the default attributes
 	 */
-	private static final String SPECIAL_CHARACTERS = ",-\\/\\\\";
+	private static final String SPECIAL_CHARACTERS = ",-\\/\\\\&";
 
 	/**
 	 * Special characters that also separate numbers. The analyzer doesn't separate numbers with , or . in them.
@@ -264,7 +264,7 @@ public class CRQueryParser extends QueryParser {
 	 * @return query with mnoGoSearch syntax replaced for lucene
 	 */
 	protected String replaceBooleanMnoGoSearchQuery(final String mnoGoSearchQuery) {
-		String luceneQuery = mnoGoSearchQuery.replaceAll(" ?\\| ?", " OR ").replaceAll(" ?& ?", " AND ").replace('\'', '"');
+		String luceneQuery = mnoGoSearchQuery.replaceAll(" ?\\| ?", " OR ").replaceAll("(?<!\\\\) ?& ?", " AND ").replace('\'', '"');
 		luceneQuery = luceneQuery.replaceAll(" ~([a-zA-Z0-9üöäÜÖÄß]+)", " NOT $1");
 		return luceneQuery;
 	}
