@@ -56,14 +56,13 @@ public abstract class AbstractLuceneTest extends TestCase {
 	}
 
 	protected void containsAll(final Collection<ComparableDocument> matchedDocuments, final ComparableDocument[] documents) {
-		assertTrue(matchedDocuments.containsAll(Arrays.asList(documents)));
-		assertTrue(matchedDocuments.size() == documents.length);
+		assertEquals("Wrong size of matched documents.", documents.length, matchedDocuments.size());
+		assertTrue("Wrong result items.", matchedDocuments.containsAll(Arrays.asList(documents)));
 	}
 
 	protected void containsOnly(final Collection<ComparableDocument> matchedDocuments, final ComparableDocument containedDocument) {
-		assertTrue(matchedDocuments.contains(containedDocument));
-		assertTrue(matchedDocuments.size() == 1);
-
+		assertEquals("Wrong size of matched documents.", 1, matchedDocuments.size());
+		assertTrue("Wrong result item.", matchedDocuments.contains(containedDocument));
 	}
 	
 	public Collection<ComparableDocument> wrapComparable(final Collection<Document> docColl) {

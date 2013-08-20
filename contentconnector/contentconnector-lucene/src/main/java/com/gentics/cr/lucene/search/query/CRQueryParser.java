@@ -34,17 +34,28 @@ public class CRQueryParser extends QueryParser {
 	 */
 	private static final int THREE = 3;
 	
+
 	/**
-	 * characters that cannot be searched because they are removed (replaced by a space) by the analyser before writing to the index.
-	 * special characters are for now  , - / \
+	 * Word, space, underscore, colon, star characters.
+	 */
+	private static final String INV_SPECIAL_CHARACTERS = "\\pL\\p{Nd}_*: ";
+
+	/**
+	 * characters that cannot be searched because they are removed (replaced by a space) by the analyzer before writing to the index.
 	 * <br>do not add wildcard symbols here as that would remove them from the query in the default attributes
 	 */
-	private static final String SPECIAL_CHARACTERS = ",-\\/\\\\&";
+	private static final String CHAR_GROUP_SPECIAL_CHARACTERS = "[^" + INV_SPECIAL_CHARACTERS + "]";
 
 	/**
 	 * Special characters that also separate numbers. The analyzer doesn't separate numbers with , or . in them.
 	 */
-	private static final String SPECIAL_CHARACTER_IN_NUMBERS = "-\\/\\\\&";
+	private static final String CHAR_GROUP_SPECIAL_CHARACTERS_IN_NUMBERS = "[^" + INV_SPECIAL_CHARACTERS + ",\\.]";
+
+	/**
+	 * Word, space, underscore, colon, star characters.
+	 * (inverted special characters)
+	 */
+	private static final String CHAR_GROUP_WORD_SPACE_CHAR = "[" + INV_SPECIAL_CHARACTERS + "]";
 
 	/**
 	 * attributes to search in.
@@ -68,6 +79,7 @@ public class CRQueryParser extends QueryParser {
 	private static final Pattern PATTERN_ATTRIBUTE_VALUE = Pattern.compile("([" + seperatorCharacterClass + "]*)"
 			+ "([^:]+:(?:\\([^\\)]+\\)|\\[[^\\]]+\\]|\"[^\"]+\")|\"[^\"]+\"|[^" + seperatorCharacterClass + "]+)" + "(["
 			+ seperatorCharacterClass + "]*)");
+
 	/** Matches attribute value pair where exact search with quotes was used or were a wildcard was used. */
 	private static final Pattern PATTERN_WILDCARD_OR_EXACT_SEARCH = Pattern.compile("[^:]+:(\"[^\"]+\"|.*\\*.*)");
 
@@ -133,7 +145,8 @@ public class CRQueryParser extends QueryParser {
 			String charsAfterValue = valueMatcher.group(THREE);
 			if (!"AND".equalsIgnoreCase(valueWithAttribute) && !"OR".equalsIgnoreCase(valueWithAttribute)
 					&& !"NOT".equalsIgnoreCase(valueWithAttribute) && attributesToSearchIn.contains(attribute)) {
-				if (!valueWithAttribute.matches("[^:]+:\"[^\"]+\"") && valueWithAttribute.matches(".*[" + SPECIAL_CHARACTERS + "].*")) {
+				if (!valueWithAttribute.matches("[^:]+:\"[^\"]+\"")
+						&& valueWithAttribute.matches(".*" + CHAR_GROUP_SPECIAL_CHARACTERS + ".*")) {
 					String replacement = replaceSpecialCharactersInAttribute(charsBeforeValue, valueWithAttribute, attribute, charsAfterValue);
 					valueMatcher.appendReplacement(newQuery, Matcher.quoteReplacement(replacement));
 				}
@@ -154,26 +167,35 @@ public class CRQueryParser extends QueryParser {
 	protected String replaceSpecialCharactersInAttribute(final String charsBeforeValue,
 			final String valueWithAttribute, final String attribute, final String charsAfterValue) {
 
-		//remove special characters immediatly after or before wildcards as they would result in queries like attribute:query +attribute:*
-		String cleanedValueWithAttribute = valueWithAttribute.replaceAll("[" + SPECIAL_CHARACTERS + "]+(\\*)", "$1");
-		cleanedValueWithAttribute = cleanedValueWithAttribute.replaceAll("(" + attribute + ":\\*)[" + SPECIAL_CHARACTERS + "]+", "$1");
+		// remove special characters immediatly after or before wildcards as they would result in queries like attribute:query +attribute:*
+		String cleanedValueWithAttribute = valueWithAttribute.replaceAll(CHAR_GROUP_SPECIAL_CHARACTERS + "+(\\*)", "$1");
+		cleanedValueWithAttribute = cleanedValueWithAttribute.replaceAll(
+			"(" + attribute + ":\\*)" + CHAR_GROUP_SPECIAL_CHARACTERS + "+",
+			"$1");
 		
 		// remove special characters at beginning of query
-		cleanedValueWithAttribute = cleanedValueWithAttribute.replaceAll("([^:]+:)[" + SPECIAL_CHARACTERS + "]+", "$1");
+		cleanedValueWithAttribute = cleanedValueWithAttribute.replaceAll("([^:]+:)" + CHAR_GROUP_SPECIAL_CHARACTERS + "+", "$1");
 
 		// remove special characters at end of query
-		cleanedValueWithAttribute = cleanedValueWithAttribute.replaceAll("([^:]+:.*[^" + SPECIAL_CHARACTERS + "]+)[" + SPECIAL_CHARACTERS
-				+ "]+$", "$1");
+		cleanedValueWithAttribute = cleanedValueWithAttribute.replaceAll("([^:]+:.*" + CHAR_GROUP_WORD_SPACE_CHAR + "+)"
+				+ CHAR_GROUP_SPECIAL_CHARACTERS + "+$", "$1");
 
 		// remove multiple special characters
-		cleanedValueWithAttribute = cleanedValueWithAttribute.replaceAll("\\\\([" + SPECIAL_CHARACTERS + "])+", "\\\\$1");
+		cleanedValueWithAttribute = cleanedValueWithAttribute.replaceAll("\\\\(" + CHAR_GROUP_SPECIAL_CHARACTERS + ")+", "\\\\$1");
 
-		//replace content:s-train with content:s +content:train as the special characters cannot be searched in attributes indexed by the StandardAnalyzer
-		return charsBeforeValue + "("
-				+ cleanedValueWithAttribute.replaceAll(
-					"\\\\?([^0-9][" + SPECIAL_CHARACTERS + "]|[0-9]["
-						+ SPECIAL_CHARACTER_IN_NUMBERS
-						+ "])([^" + SPECIAL_CHARACTERS + "]+)", " +" + attribute + ":$2") + ")" + charsAfterValue;
+		if (cleanedValueWithAttribute.equalsIgnoreCase(attribute + ":")) {
+			// if we have an empty query value after cleaning, then return a wildcard query
+			return charsBeforeValue + "(" + attribute + ":*)" + charsAfterValue;
+		}
+
+		// replace content:s-train with content:s +content:train as the special characters cannot be searched in attributes indexed by the 
+		/// StandardAnalyzer
+		return charsBeforeValue
+				+ "("
+				+ cleanedValueWithAttribute.replaceAll("\\\\?((?<![0-9])" + CHAR_GROUP_SPECIAL_CHARACTERS + "|(?<=[0-9])"
+						+ CHAR_GROUP_SPECIAL_CHARACTERS_IN_NUMBERS + ")(" + CHAR_GROUP_WORD_SPACE_CHAR + "+)", " +" + attribute + ":$2")
+				+ ")"
+				+ charsAfterValue;
 	}
 
 	/**
