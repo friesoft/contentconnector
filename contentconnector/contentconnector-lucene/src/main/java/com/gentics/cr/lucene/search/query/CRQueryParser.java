@@ -44,18 +44,18 @@ public class CRQueryParser extends QueryParser {
 	 * characters that cannot be searched because they are removed (replaced by a space) by the analyzer before writing to the index.
 	 * <br>do not add wildcard symbols here as that would remove them from the query in the default attributes
 	 */
-	private static final String CHAR_GROUP_SPECIAL_CHARACTERS = "[^" + INV_SPECIAL_CHARACTERS + "]";
+	private static String CHAR_GROUP_SPECIAL_CHARACTERS = "[^" + INV_SPECIAL_CHARACTERS + "]";
 
 	/**
 	 * Special characters that also separate numbers. The analyzer doesn't separate numbers with , or . in them.
 	 */
-	private static final String CHAR_GROUP_SPECIAL_CHARACTERS_IN_NUMBERS = "[^" + INV_SPECIAL_CHARACTERS + ",\\.]";
+	private static String CHAR_GROUP_SPECIAL_CHARACTERS_IN_NUMBERS = "[^" + INV_SPECIAL_CHARACTERS + ",\\.]";
 
 	/**
 	 * Word, space, underscore, colon, star characters.
 	 * (inverted special characters)
 	 */
-	private static final String CHAR_GROUP_WORD_SPACE_CHAR = "[" + INV_SPECIAL_CHARACTERS + "]";
+	private static String CHAR_GROUP_WORD_SPACE_CHAR = "[" + INV_SPECIAL_CHARACTERS + "]";
 
 	/**
 	 * attributes to search in.
@@ -107,6 +107,24 @@ public class CRQueryParser extends QueryParser {
 	public CRQueryParser(final Version version, final String[] searchedAttributes, final Analyzer analyzer, final CRRequest crRequest) {
 		this(version, searchedAttributes, analyzer);
 		this.request = crRequest;
+	}
+
+	/**
+	 * initialize a CRQeryParser with multiple search attributes.
+	 * @param version version of lucene
+	 * @param searchedAttributes attributes to search in
+	 * @param analyzer analyzer for index
+	 * @param crRequest request to get additional parameters from.
+	 * @param specialCharGroup {@link #CHAR_GROUP_SPECIAL_CHARACTERS}
+	 * @param specialCharInNumbersGroup {@link #CHAR_GROUP_SPECIAL_CHARACTERS_IN_NUMBERS}
+	 * @param wordCharGroup {@link #CHAR_GROUP_WORD_SPACE_CHAR}
+	 */
+	public CRQueryParser(final Version version, final String[] searchedAttributes, final Analyzer analyzer, final CRRequest crRequest,
+		final String specialCharGroup, final String specialCharInNumbersGroup, final String wordCharGroup) {
+		this(version, searchedAttributes, analyzer, crRequest);
+		CHAR_GROUP_SPECIAL_CHARACTERS = specialCharGroup;
+		CHAR_GROUP_SPECIAL_CHARACTERS_IN_NUMBERS = specialCharInNumbersGroup;
+		CHAR_GROUP_WORD_SPACE_CHAR = wordCharGroup;
 	}
 
 	/**
