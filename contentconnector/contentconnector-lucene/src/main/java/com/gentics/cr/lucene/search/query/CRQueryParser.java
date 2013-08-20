@@ -35,7 +35,7 @@ public class CRQueryParser extends QueryParser {
 	private static final int THREE = 3;
 	
 	/**
-	 * characters that cannot be search because they are removed (replaced by a space) by the analyser before writing to the index.
+	 * characters that cannot be searched because they are removed (replaced by a space) by the analyser before writing to the index.
 	 * special characters are for now  , - / \
 	 * <br>do not add wildcard symbols here as that would remove them from the query in the default attributes
 	 */
@@ -44,7 +44,7 @@ public class CRQueryParser extends QueryParser {
 	/**
 	 * Special characters that also separate numbers. The analyzer doesn't separate numbers with , or . in them.
 	 */
-	private static final String SPECIAL_CHARACTER_IN_NUMBERS = "-\\/\\\\";
+	private static final String SPECIAL_CHARACTER_IN_NUMBERS = "-\\/\\\\&";
 
 	/**
 	 * attributes to search in.
@@ -158,9 +158,21 @@ public class CRQueryParser extends QueryParser {
 		String cleanedValueWithAttribute = valueWithAttribute.replaceAll("[" + SPECIAL_CHARACTERS + "]+(\\*)", "$1");
 		cleanedValueWithAttribute = cleanedValueWithAttribute.replaceAll("(" + attribute + ":\\*)[" + SPECIAL_CHARACTERS + "]+", "$1");
 		
+		// remove special characters at beginning of query
+		cleanedValueWithAttribute = cleanedValueWithAttribute.replaceAll("([^:]+:)[" + SPECIAL_CHARACTERS + "]+", "$1");
+
+		// remove special characters at end of query
+		cleanedValueWithAttribute = cleanedValueWithAttribute.replaceAll("([^:]+:.*[^" + SPECIAL_CHARACTERS + "]+)[" + SPECIAL_CHARACTERS
+				+ "]+$", "$1");
+
+		// remove multiple special characters
+		cleanedValueWithAttribute = cleanedValueWithAttribute.replaceAll("\\\\([" + SPECIAL_CHARACTERS + "])+", "\\\\$1");
+
 		//replace content:s-train with content:s +content:train as the special characters cannot be searched in attributes indexed by the StandardAnalyzer
 		return charsBeforeValue + "("
-				+ cleanedValueWithAttribute.replaceAll("\\\\?([^0-9][" + SPECIAL_CHARACTERS + "]|[0-9][" + SPECIAL_CHARACTER_IN_NUMBERS
+				+ cleanedValueWithAttribute.replaceAll(
+					"\\\\?([^0-9][" + SPECIAL_CHARACTERS + "]|[0-9]["
+						+ SPECIAL_CHARACTER_IN_NUMBERS
 						+ "])([^" + SPECIAL_CHARACTERS + "]+)", " +" + attribute + ":$2") + ")" + charsAfterValue;
 	}
 
