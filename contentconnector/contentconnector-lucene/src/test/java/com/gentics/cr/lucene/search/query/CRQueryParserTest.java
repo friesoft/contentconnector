@@ -16,6 +16,7 @@ import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.queryParser.ParseException;
 
 import com.gentics.cr.CRRequest;
+import com.gentics.cr.configuration.GenericConfiguration;
 import com.gentics.cr.lucene.AbstractLuceneTest;
 import com.gentics.cr.lucene.LuceneVersion;
 import com.gentics.cr.lucene.search.query.mocks.ComparableDocument;
@@ -44,7 +45,9 @@ public class CRQueryParserTest extends AbstractLuceneTest {
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
-		parser = new CRQueryParser(LuceneVersion.getVersion(), SEARCHED_ATTRIBUTES, STANDARD_ANALYZER, true);
+		GenericConfiguration config = new GenericConfiguration();
+		config.set(CRQueryParser.KEY_COMPREHENSIVE_SPECIAL_CHARACTER_FILTERING, "TRUE");
+		parser = new CRQueryParser(config, LuceneVersion.getVersion(), SEARCHED_ATTRIBUTES, STANDARD_ANALYZER);
 		crRequest = new CRRequest();
 		lucene = new SimpleLucene();
 

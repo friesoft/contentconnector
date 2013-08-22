@@ -13,6 +13,7 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.util.Version;
 
 import com.gentics.cr.CRRequest;
+import com.gentics.cr.configuration.GenericConfiguration;
 
 /**
  * CRQueryParser allows you to use mnoGoSearch Queries and searching in
@@ -20,6 +21,32 @@ import com.gentics.cr.CRRequest;
  * @author perhab
  */
 public class CRQueryParser extends QueryParser {
+
+	/**
+	 * Word, space, underscore, colon, star characters.
+	 * (inverted special characters)
+	 * <br>defaults to <pre>"[^,-\\/\\\\&]"</pre>
+	 */
+	public static final String KEY_WORD_CHARACTER_GROUP = "wordCharacterGroup";
+
+	/**
+	 * Special characters that also separate numbers. The analyzer doesn't separate numbers with , or . in them.
+	 * <br>defaults to <pre>"[\\/\\\\&]"</pre>
+	 */
+	public static final String KEY_SPECIAL_CHARACTER_IN_NUMBERS_GROUP = "specialCharacterInNumbersGroup";
+
+	/**
+	 * characters that cannot be searched because they are removed (replaced by a space) by the analyzer before writing to the index.
+	 * <br>do not add wildcard symbols here as that would remove them from the query in the default attributes
+	 * <br>defaults to <pre>"[,-\\/\\\\&]"</pre>
+	 */
+	public static final String KEY_SPECIAL_CHARACTER_GROUP = "specialCharacterGroup";
+
+	/**
+	 * if set to true, all characters that are not unicode, space, underscore, colon, star 
+	 * 			characters are removed.
+	 */
+	public static final String KEY_COMPREHENSIVE_SPECIAL_CHARACTER_FILTERING = "comprehensiveSpecialCharacterFiltering";
 
 	/**
 	 * Constant 1.
@@ -44,18 +71,18 @@ public class CRQueryParser extends QueryParser {
 	 * characters that cannot be searched because they are removed (replaced by a space) by the analyzer before writing to the index.
 	 * <br>do not add wildcard symbols here as that would remove them from the query in the default attributes
 	 */
-	private String charGroupSpecialCharacters = "[,-\\/\\\\&]";
+	private String charGroupSpecialCharacters;
 
 	/**
 	 * Special characters that also separate numbers. The analyzer doesn't separate numbers with , or . in them.
 	 */
-	private String charGroupSpecialCharactersInNumbers = "[\\/\\\\&]";
+	private String charGroupSpecialCharactersInNumbers;
 
 	/**
 	 * Word, space, underscore, colon, star characters.
 	 * (inverted special characters)
 	 */
-	private String charGroupWordSpaceCharacters = "[^,-\\/\\\\&]";
+	private String charGroupWordSpaceCharacters;
 
 	/**
 	 * attributes to search in.
@@ -95,25 +122,35 @@ public class CRQueryParser extends QueryParser {
 	public CRQueryParser(final Version version, final String[] searchedAttributes, final Analyzer analyzer) {
 		super(version, searchedAttributes[0], analyzer);
 		attributesToSearchIn = Arrays.asList(searchedAttributes);
+		setSpecialCharactersFromConfig(new GenericConfiguration());
+	}
+	/**
+	 * initialize a CRQeryParser with multiple search attributes.
+	 * @param config configuration for special characters
+	 * @param version version of lucene
+	 * @param searchedAttributes attributes to search in
+	 * @param analyzer analyzer for index
+	 */
+	public CRQueryParser(final GenericConfiguration config, final Version version, final String[] searchedAttributes,
+		final Analyzer analyzer) {
+		super(version, searchedAttributes[0], analyzer);
+		attributesToSearchIn = Arrays.asList(searchedAttributes);
+		setSpecialCharactersFromConfig(config);
 	}
 
 	/**
 	 * initialize a CRQeryParser with multiple search attributes.
+	 * @param config configuration for special characters
 	 * @param version version of lucene
 	 * @param searchedAttributes attributes to search in
 	 * @param analyzer analyzer for index
-	 * @param comprehensiveSpecialCharacterFiltering if set to true, all characters that are not unicode, space, underscore, colon, star 
-	 * 			characters are removed.
+	 * @param crRequest request to get additional parameters from.
 	 */
-	public CRQueryParser(final Version version, final String[] searchedAttributes, final Analyzer analyzer,
-		final boolean comprehensiveSpecialCharacterFiltering) {
-		super(version, searchedAttributes[0], analyzer);
-		attributesToSearchIn = Arrays.asList(searchedAttributes);
-		if (comprehensiveSpecialCharacterFiltering) {
-			charGroupSpecialCharacters = "[^" + INV_SPECIAL_CHARACTERS + "]";
-			charGroupSpecialCharactersInNumbers = "[^" + INV_SPECIAL_CHARACTERS + ",\\.]";
-			charGroupWordSpaceCharacters = "[" + INV_SPECIAL_CHARACTERS + "]";
-		}
+	public CRQueryParser(final GenericConfiguration config, final Version version, final String[] searchedAttributes,
+		final Analyzer analyzer, final CRRequest crRequest) {
+		this(version, searchedAttributes, analyzer);
+		this.request = crRequest;
+		setSpecialCharactersFromConfig(config);
 	}
 
 	/**
@@ -126,39 +163,26 @@ public class CRQueryParser extends QueryParser {
 	public CRQueryParser(final Version version, final String[] searchedAttributes, final Analyzer analyzer, final CRRequest crRequest) {
 		this(version, searchedAttributes, analyzer);
 		this.request = crRequest;
+		setSpecialCharactersFromConfig(new GenericConfiguration());
 	}
 
 	/**
-	 * initialize a CRQeryParser with multiple search attributes.
-	 * @param version version of lucene
-	 * @param searchedAttributes attributes to search in
-	 * @param analyzer analyzer for index
-	 * @param crRequest request to get additional parameters from.
-	 * @param comprehensiveSpecialCharacterFiltering if set to true, all characters that are not unicode, space, underscore, colon, star 
-	 * 			characters are removed.
+	 * @param config set special character settings from configuration
 	 */
-	public CRQueryParser(final Version version, final String[] searchedAttributes, final Analyzer analyzer, final CRRequest crRequest,
-		final boolean comprehensiveSpecialCharacterFiltering) {
-		this(version, searchedAttributes, analyzer, comprehensiveSpecialCharacterFiltering);
-		this.request = crRequest;
-	}
-
-	/**
-	 * initialize a CRQeryParser with multiple search attributes.
-	 * @param version version of lucene
-	 * @param searchedAttributes attributes to search in
-	 * @param analyzer analyzer for index
-	 * @param crRequest request to get additional parameters from.
-	 * @param specialCharGroup {@link #charGroupSpecialCharacters}
-	 * @param specialCharInNumbersGroup {@link #charGroupSpecialCharactersInNumbers}
-	 * @param wordCharGroup {@link #charGroupWordSpaceCharacters}
-	 */
-	public CRQueryParser(final Version version, final String[] searchedAttributes, final Analyzer analyzer, final CRRequest crRequest,
-		final String specialCharGroup, final String specialCharInNumbersGroup, final String wordCharGroup) {
-		this(version, searchedAttributes, analyzer, crRequest);
-		charGroupSpecialCharacters = specialCharGroup;
-		charGroupSpecialCharactersInNumbers = specialCharInNumbersGroup;
-		charGroupWordSpaceCharacters = wordCharGroup;
+	private void setSpecialCharactersFromConfig(final GenericConfiguration config) {
+		if (config.getBoolean(KEY_COMPREHENSIVE_SPECIAL_CHARACTER_FILTERING, false)) {
+			charGroupSpecialCharacters = "[^" + INV_SPECIAL_CHARACTERS + "]";
+			charGroupSpecialCharactersInNumbers = "[^" + INV_SPECIAL_CHARACTERS + ",\\.]";
+			charGroupWordSpaceCharacters = "[" + INV_SPECIAL_CHARACTERS + "]";
+		} else {
+			charGroupSpecialCharacters = "[,-\\/\\\\&]";
+			charGroupSpecialCharactersInNumbers = "[\\/\\\\&]";
+			charGroupWordSpaceCharacters = "[^,-\\/\\\\&]";
+		}
+		charGroupSpecialCharacters = config.getString(KEY_SPECIAL_CHARACTER_GROUP, charGroupSpecialCharacters);
+		charGroupSpecialCharactersInNumbers = config
+				.getString(KEY_SPECIAL_CHARACTER_IN_NUMBERS_GROUP, charGroupSpecialCharactersInNumbers);
+		charGroupWordSpaceCharacters = config.getString(KEY_WORD_CHARACTER_GROUP, charGroupWordSpaceCharacters);
 	}
 
 	/**
