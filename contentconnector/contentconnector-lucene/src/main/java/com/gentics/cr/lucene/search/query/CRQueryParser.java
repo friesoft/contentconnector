@@ -44,18 +44,18 @@ public class CRQueryParser extends QueryParser {
 	 * characters that cannot be searched because they are removed (replaced by a space) by the analyzer before writing to the index.
 	 * <br>do not add wildcard symbols here as that would remove them from the query in the default attributes
 	 */
-	private static String CHAR_GROUP_SPECIAL_CHARACTERS = "[^" + INV_SPECIAL_CHARACTERS + "]";
+	private String charGroupSpecialCharacters = "[,-\\/\\\\&]";
 
 	/**
 	 * Special characters that also separate numbers. The analyzer doesn't separate numbers with , or . in them.
 	 */
-	private static String CHAR_GROUP_SPECIAL_CHARACTERS_IN_NUMBERS = "[^" + INV_SPECIAL_CHARACTERS + ",\\.]";
+	private String charGroupSpecialCharactersInNumbers = "[\\/\\\\&]";
 
 	/**
 	 * Word, space, underscore, colon, star characters.
 	 * (inverted special characters)
 	 */
-	private static String CHAR_GROUP_WORD_SPACE_CHAR = "[" + INV_SPECIAL_CHARACTERS + "]";
+	private String charGroupWordSpaceCharacters = "[^,-\\/\\\\&]";
 
 	/**
 	 * attributes to search in.
@@ -102,6 +102,25 @@ public class CRQueryParser extends QueryParser {
 	 * @param version version of lucene
 	 * @param searchedAttributes attributes to search in
 	 * @param analyzer analyzer for index
+	 * @param comprehensiveSpecialCharacterFiltering if set to true, all characters that are not unicode, space, underscore, colon, star 
+	 * 			characters are removed.
+	 */
+	public CRQueryParser(final Version version, final String[] searchedAttributes, final Analyzer analyzer,
+		final boolean comprehensiveSpecialCharacterFiltering) {
+		super(version, searchedAttributes[0], analyzer);
+		attributesToSearchIn = Arrays.asList(searchedAttributes);
+		if (comprehensiveSpecialCharacterFiltering) {
+			charGroupSpecialCharacters = "[^" + INV_SPECIAL_CHARACTERS + "]";
+			charGroupSpecialCharactersInNumbers = "[^" + INV_SPECIAL_CHARACTERS + ",\\.]";
+			charGroupWordSpaceCharacters = "[" + INV_SPECIAL_CHARACTERS + "]";
+		}
+	}
+
+	/**
+	 * initialize a CRQeryParser with multiple search attributes.
+	 * @param version version of lucene
+	 * @param searchedAttributes attributes to search in
+	 * @param analyzer analyzer for index
 	 * @param crRequest request to get additional parameters from.
 	 */
 	public CRQueryParser(final Version version, final String[] searchedAttributes, final Analyzer analyzer, final CRRequest crRequest) {
@@ -115,16 +134,31 @@ public class CRQueryParser extends QueryParser {
 	 * @param searchedAttributes attributes to search in
 	 * @param analyzer analyzer for index
 	 * @param crRequest request to get additional parameters from.
-	 * @param specialCharGroup {@link #CHAR_GROUP_SPECIAL_CHARACTERS}
-	 * @param specialCharInNumbersGroup {@link #CHAR_GROUP_SPECIAL_CHARACTERS_IN_NUMBERS}
-	 * @param wordCharGroup {@link #CHAR_GROUP_WORD_SPACE_CHAR}
+	 * @param comprehensiveSpecialCharacterFiltering if set to true, all characters that are not unicode, space, underscore, colon, star 
+	 * 			characters are removed.
+	 */
+	public CRQueryParser(final Version version, final String[] searchedAttributes, final Analyzer analyzer, final CRRequest crRequest,
+		final boolean comprehensiveSpecialCharacterFiltering) {
+		this(version, searchedAttributes, analyzer, comprehensiveSpecialCharacterFiltering);
+		this.request = crRequest;
+	}
+
+	/**
+	 * initialize a CRQeryParser with multiple search attributes.
+	 * @param version version of lucene
+	 * @param searchedAttributes attributes to search in
+	 * @param analyzer analyzer for index
+	 * @param crRequest request to get additional parameters from.
+	 * @param specialCharGroup {@link #charGroupSpecialCharacters}
+	 * @param specialCharInNumbersGroup {@link #charGroupSpecialCharactersInNumbers}
+	 * @param wordCharGroup {@link #charGroupWordSpaceCharacters}
 	 */
 	public CRQueryParser(final Version version, final String[] searchedAttributes, final Analyzer analyzer, final CRRequest crRequest,
 		final String specialCharGroup, final String specialCharInNumbersGroup, final String wordCharGroup) {
 		this(version, searchedAttributes, analyzer, crRequest);
-		CHAR_GROUP_SPECIAL_CHARACTERS = specialCharGroup;
-		CHAR_GROUP_SPECIAL_CHARACTERS_IN_NUMBERS = specialCharInNumbersGroup;
-		CHAR_GROUP_WORD_SPACE_CHAR = wordCharGroup;
+		charGroupSpecialCharacters = specialCharGroup;
+		charGroupSpecialCharactersInNumbers = specialCharInNumbersGroup;
+		charGroupWordSpaceCharacters = wordCharGroup;
 	}
 
 	/**
@@ -164,7 +198,7 @@ public class CRQueryParser extends QueryParser {
 			if (!"AND".equalsIgnoreCase(valueWithAttribute) && !"OR".equalsIgnoreCase(valueWithAttribute)
 					&& !"NOT".equalsIgnoreCase(valueWithAttribute) && attributesToSearchIn.contains(attribute)) {
 				if (!valueWithAttribute.matches("[^:]+:\"[^\"]+\"")
-						&& valueWithAttribute.matches(".*" + CHAR_GROUP_SPECIAL_CHARACTERS + ".*")) {
+						&& valueWithAttribute.matches(".*" + charGroupSpecialCharacters + ".*")) {
 					String replacement = replaceSpecialCharactersInAttribute(charsBeforeValue, valueWithAttribute, attribute, charsAfterValue);
 					valueMatcher.appendReplacement(newQuery, Matcher.quoteReplacement(replacement));
 				}
@@ -186,20 +220,20 @@ public class CRQueryParser extends QueryParser {
 			final String valueWithAttribute, final String attribute, final String charsAfterValue) {
 
 		// remove special characters immediatly after or before wildcards as they would result in queries like attribute:query +attribute:*
-		String cleanedValueWithAttribute = valueWithAttribute.replaceAll(CHAR_GROUP_SPECIAL_CHARACTERS + "+(\\*)", "$1");
+		String cleanedValueWithAttribute = valueWithAttribute.replaceAll(charGroupSpecialCharacters + "+(\\*)", "$1");
 		cleanedValueWithAttribute = cleanedValueWithAttribute.replaceAll(
-			"(" + attribute + ":\\*)" + CHAR_GROUP_SPECIAL_CHARACTERS + "+",
+			"(" + attribute + ":\\*)" + charGroupSpecialCharacters + "+",
 			"$1");
 		
 		// remove special characters at beginning of query
-		cleanedValueWithAttribute = cleanedValueWithAttribute.replaceAll("([^:]+:)" + CHAR_GROUP_SPECIAL_CHARACTERS + "+", "$1");
+		cleanedValueWithAttribute = cleanedValueWithAttribute.replaceAll("([^:]+:)" + charGroupSpecialCharacters + "+", "$1");
 
 		// remove special characters at end of query
-		cleanedValueWithAttribute = cleanedValueWithAttribute.replaceAll("([^:]+:.*" + CHAR_GROUP_WORD_SPACE_CHAR + "+)"
-				+ CHAR_GROUP_SPECIAL_CHARACTERS + "+$", "$1");
+		cleanedValueWithAttribute = cleanedValueWithAttribute.replaceAll("([^:]+:.*" + charGroupWordSpaceCharacters + "+)"
+				+ charGroupSpecialCharacters + "+$", "$1");
 
 		// remove multiple special characters
-		cleanedValueWithAttribute = cleanedValueWithAttribute.replaceAll("\\\\(" + CHAR_GROUP_SPECIAL_CHARACTERS + ")+", "\\\\$1");
+		cleanedValueWithAttribute = cleanedValueWithAttribute.replaceAll("\\\\(" + charGroupSpecialCharacters + ")+", "\\\\$1");
 
 		if (cleanedValueWithAttribute.equalsIgnoreCase(attribute + ":")) {
 			// if we have an empty query value after cleaning, then return a wildcard query
@@ -210,8 +244,8 @@ public class CRQueryParser extends QueryParser {
 		/// StandardAnalyzer
 		return charsBeforeValue
 				+ "("
-				+ cleanedValueWithAttribute.replaceAll("\\\\?((?<![0-9])" + CHAR_GROUP_SPECIAL_CHARACTERS + "|(?<=[0-9])"
-						+ CHAR_GROUP_SPECIAL_CHARACTERS_IN_NUMBERS + ")(" + CHAR_GROUP_WORD_SPACE_CHAR + "+)", " +" + attribute + ":$2")
+				+ cleanedValueWithAttribute.replaceAll("\\\\?((?<![0-9])" + charGroupSpecialCharacters + "|(?<=[0-9])"
+						+ charGroupSpecialCharactersInNumbers + ")(" + charGroupWordSpaceCharacters + "+)", " +" + attribute + ":$2")
 				+ ")"
 				+ charsAfterValue;
 	}

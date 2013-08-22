@@ -44,7 +44,7 @@ public class CRQueryParserTest extends AbstractLuceneTest {
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
-		parser = new CRQueryParser(LuceneVersion.getVersion(), SEARCHED_ATTRIBUTES, STANDARD_ANALYZER);
+		parser = new CRQueryParser(LuceneVersion.getVersion(), SEARCHED_ATTRIBUTES, STANDARD_ANALYZER, true);
 		crRequest = new CRRequest();
 		lucene = new SimpleLucene();
 
