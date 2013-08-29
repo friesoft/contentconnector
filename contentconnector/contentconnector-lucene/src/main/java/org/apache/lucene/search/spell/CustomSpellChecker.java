@@ -530,26 +530,25 @@ public class CustomSpellChecker implements java.io.Closeable {
 			final IndexAccessor accessor = this.spellIndex.getAccessor();
 			final IndexWriter writer = accessor.getWriter();
 			if (writer.getConfig().getMergePolicy() instanceof LogMergePolicy) {
-				writer.setMergeFactor(300);
+				LogMergePolicy logMergePolicy = (LogMergePolicy) writer.getConfig().getMergePolicy();
+				logMergePolicy.setMergeFactor(300);
 			}
 			final IndexSearcher indexSearcher = (IndexSearcher) accessor.getPrioritizedSearcher();
 			int obj_count = 0;
 
 			try {
 				BytesRefIterator iter = dict.getWordsIterator();
-				BytesRef ref = iter.next();
-				while (ref != null) {
+				BytesRef ref;
+				while ((ref = iter.next()) != null) {
 					String word = ref.utf8ToString();
 
 					int len = word.length();
 					if (len < THREE) {
-						ref = iter.next();
 						continue; // too short we bail but "too long" is fine...
 					}
 
 					if (indexSearcher.docFreq(F_WORD_TERM.createTerm(word)) > 0) {
-						// if the word already exist in the gramindex
-						ref = iter.next();
+						// if the word already exists in the gramindex
 						continue;
 					}
 
@@ -557,12 +556,10 @@ public class CustomSpellChecker implements java.io.Closeable {
 					Document doc = createDocument(word, getMin(len), getMax(len));
 					writer.addDocument(doc);
 					obj_count++;
-					ref = iter.next();
 				}
 
 			} finally {
-				// if documents where added to the index create a reopen file and
-				// optimize the writer
+				// if documents where added to the index create a reopen file 
 				if (obj_count > 0) {
 					writer.optimize();
 					this.spellIndex.createReopenFile();
@@ -589,17 +586,6 @@ public class CustomSpellChecker implements java.io.Closeable {
 	 * 5.
 	 */
 	private static final int FIVE = 5;
-
-	/**
-	 * Indexes the data from the given {@link Dictionary}.
-	 * 
-	 * @param dict the dictionary to index
-	 * @throws IOException in case of error
-	 */
-	// public final void indexDictionary(final Dictionary dict) throws
-	// IOException {
-	// indexDictionary(dict, THREE_HUNDRED, TEN);
-	// }
 
 	/**
 	 * get Min.
@@ -676,20 +662,6 @@ public class CustomSpellChecker implements java.io.Closeable {
 			}
 		}
 	}
-
-	// /**
-	// * obtainSearcher.
-	// * @return searcher
-	// * @throws IOException
-	// */
-	// private IndexSearcher obtainSearcher() throws IOException {
-	// synchronized (searcherLock) {
-	// ensureOpen();
-	// IndexSearcher mySearcher = (IndexSearcher)
-	// this.spellIndex.getAccessor().getSearcher();
-	// return mySearcher;
-	// }
-	// }
 
 	/**
 	 * ensure open.

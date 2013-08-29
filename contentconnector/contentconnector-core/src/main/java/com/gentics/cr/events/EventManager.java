@@ -42,10 +42,13 @@ public final class EventManager {
 	}
 
 	/**
-	 * Fire a event to the registered receivers.
+	 * Fire a event to the registered receivers.<br>
+	 * Note: removed synchronized keyword as we ran into a deadlock, when 
+	 * com.gentics.cr.lucene.didyoumean.DidyoumeanIndexExtension.processEvent(Event) tried to add another job while still processing its 
+	 * event. The affected {@link IEventReceiver} must lock on their own if necessary!
 	 * @param event fired event
 	 */
-	public synchronized void fireEvent(final Event<?> event) {
+	public void fireEvent(final Event<?> event) {
 		if (this.receivers != null) {
 			for (IEventReceiver ir : receivers) {
 				ir.processEvent(event);

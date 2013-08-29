@@ -42,11 +42,12 @@ public class DidYouMeanProvider implements IEventReceiver {
 
 	protected static final Logger log = Logger.getLogger(DidYouMeanProvider.class);
 
+	/**
+	 * Source of the lucene index.
+	 * @deprecated handled by the {@link DidyoumeanIndexExtension} and {@link DidyoumeanIndexJob}
+	 */
 	@Deprecated
 	private Directory source = null;
-
-	//@Deprecated
-	//private Directory didyoumeanDirectory;
 
 	private LuceneIndexLocation didyoumeanLocation;
 
@@ -67,7 +68,7 @@ public class DidYouMeanProvider implements IEventReceiver {
 	private static final String DIDYOUMEAN_EXISTINGTERMS_KEY = "didyoumean_forexisitingterms";
 
 	/**
-	 * 
+	 * Config key for {@link #useDidyomeanIndexExtension}
 	 */
 	private static final String DIDYOUMEAN_USE_INDEX_EXTENSION = "didyoumeanUseIndexExtension";
 
@@ -93,6 +94,7 @@ public class DidYouMeanProvider implements IEventReceiver {
 	 * flag to indicate if the new DidyoumeanIndexExtension should be used <br>
 	 * new implementations must set the config key "useDidyomeanIndexExtension"
 	 * to true to use the extension.
+	 * @deprecated should be initialized with true in the future
 	 */
 	@Deprecated
 	private boolean useDidyomeanIndexExtension = false;
@@ -100,7 +102,7 @@ public class DidYouMeanProvider implements IEventReceiver {
 	private Float minDScore = null;
 	private Integer minDFreq = null;
 
-	public DidYouMeanProvider(CRConfig config) {
+	public DidYouMeanProvider(final CRConfig config) {
 
 		useDidyomeanIndexExtension = config.getBoolean(DIDYOUMEAN_USE_INDEX_EXTENSION, useDidyomeanIndexExtension);
 
@@ -160,13 +162,8 @@ public class DidYouMeanProvider implements IEventReceiver {
 		}
 	}
 
-	// @Deprecated
-	// public DidYouMeanProvider(CRConfig config)
-	// {
-	// this(config, false);
-	// }
-
-	public void processEvent(Event event) {
+	@Override
+	public void processEvent(final Event event) {
 		if (IndexingFinishedEvent.INDEXING_FINISHED_EVENT_TYPE.equals(event.getType()) && !useDidyomeanIndexExtension) {
 			try {
 				reIndex();
@@ -210,7 +207,7 @@ public class DidYouMeanProvider implements IEventReceiver {
 	 * @param reader
 	 * @return
 	 */
-	public Map<String, String[]> getSuggestions(Set<Term> termlist, int count, IndexReader reader) {
+	public Map<String, String[]> getSuggestions(final Set<Term> termlist, final int count, final IndexReader reader) {
 		return getSuggestionsStringFromMap(getSuggestionTerms(termlist, count, reader));
 	}
 
@@ -221,7 +218,7 @@ public class DidYouMeanProvider implements IEventReceiver {
 	 * @param reader
 	 * @return
 	 */
-	public Map<Term, Term[]> getSuggestionTerms(Set<Term> termlist, int count, IndexReader reader) {
+	public Map<Term, Term[]> getSuggestionTerms(final Set<Term> termlist, final int count, final IndexReader reader) {
 
 		if (dymreopenupdate) {
 			checkForUpdate();
@@ -260,6 +257,9 @@ public class DidYouMeanProvider implements IEventReceiver {
 		return result;
 	}
 
+	/**
+	 * @deprecated The {@link DidyoumeanIndexJob} should handle the reindexing.
+	 */
 	@Deprecated
 	private synchronized void reIndex() throws IOException {
 		UseCase ucReIndex = MonitorFactory.startUseCase("reIndex()");
@@ -287,6 +287,7 @@ public class DidYouMeanProvider implements IEventReceiver {
 	/**
 	 * Called as soon as the garbage collection detects there is no referencing object left.
 	 */
+	@Override
 	public void finalize() {
 		spellchecker.close();
 		// stopping the didyoumeanLocation separately should not be needed. just in case.
@@ -299,7 +300,7 @@ public class DidYouMeanProvider implements IEventReceiver {
 	 * @param suggestions
 	 * @return
 	 */
-	public Map<String, String[]> getSuggestionsStringFromMap(Map<Term, Term[]> suggestions) {
+	public Map<String, String[]> getSuggestionsStringFromMap(final Map<Term, Term[]> suggestions) {
 		Map<String, String[]> result = new LinkedHashMap<String, String[]>();
 		for (Term key : suggestions.keySet()) {
 			Term[] values = suggestions.get(key);
