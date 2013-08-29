@@ -154,6 +154,7 @@ public class IndexJobQueue {
 		queue = new LinkedBlockingQueue<AbstractUpdateCheckerJob>();
 		lastJobs = new ArrayList<AbstractUpdateCheckerJob>(lastJobsSize);
 		indexJobQueueWorkerDaemon = new Thread(new Runnable() {
+			@Override
 			public void run() {
 				workQueue(config);
 			}
@@ -345,21 +346,21 @@ public class IndexJobQueue {
 
 	/**
 	 * Adds a CRIndexJob to the Job Queue.
+	 * <br>Notice: removed synchronized, as a LinkedBlockingQueue is already thread safe!
 	 * @param job job to add to teh queue
 	 * @return <code>true</code> if job was added, otherwhise it returns
 	 * <code>false</code>
 	 */
 	public final boolean addJob(final AbstractUpdateCheckerJob job) {
 		if (!queue.contains(job)) {
-			synchronized (IndexJobQueue.this) {
-				return queue.offer(job);
-			}
+			return queue.offer(job);
 		}
 		return false;
 	}
 
 	/**
 	 * Adds a list of CRIndexJobs to the job queue.
+	 * <br>Notice: removed synchronized, as a LinkedBlockingQueue is already thread safe!
 	 * @param jobList list of jobs
 	 * @return <code>true</code> if all jobs were added, otherwhise it returns
 	 * <code>false</code>
@@ -369,10 +370,8 @@ public class IndexJobQueue {
 			return false;
 		}
 		boolean result = true;
-		synchronized (IndexJobQueue.this) {
-			for (AbstractUpdateCheckerJob job : jobList) {
-				result &= addJob(job);
-			}
+		for (AbstractUpdateCheckerJob job : jobList) {
+			result &= addJob(job);
 		}
 		return result;
 	}
