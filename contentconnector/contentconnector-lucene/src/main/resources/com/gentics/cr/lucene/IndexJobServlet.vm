@@ -231,7 +231,7 @@ $numberString.replaceAll("[^0-9]([0-9]{$round})[0-9]*",".$1")##
 							<div class="smallbox">
 							#foreach($job in $extension.getJobs())
 							<div class="key">$job</div>
-							<div class="value right"><a href="?action=addExtensionJob&idx=$e.getKey()&ext=$extName&job=$job$nc">add</a></div>
+							<div class="value right"><a href="?action=addExtensionJob&idx=$e.getKey()&ext=$extName&job=$job$nc">do</a></div>
 							<div class="clear"></div>
 							#end
 							</div>

@@ -30,9 +30,9 @@ public class DidyoumeanIndexJob extends AbstractUpdateCheckerJob {
 
 	private DidyoumeanIndexExtension didyoumean;
 
-	public DidyoumeanIndexJob(CRConfig updateCheckerConfig, IndexLocation indexLoc, DidyoumeanIndexExtension didyoumean) {
+	public DidyoumeanIndexJob(final CRConfig updateCheckerConfig, final IndexLocation indexLoc, final DidyoumeanIndexExtension didyoumean) {
 		super(updateCheckerConfig, indexLoc, null);
-
+		//		this.identifyer =  + ":" + identifyer + ":reIndex";
 		this.identifyer = identifyer.concat(":reIndex");
 		this.didyoumean = didyoumean;
 	}
@@ -41,7 +41,7 @@ public class DidyoumeanIndexJob extends AbstractUpdateCheckerJob {
 	 * starts the job - is called by the IndexJobQueue.
 	 */
 	@Override
-	protected void indexCR(IndexLocation indexLocation, CRConfigUtil config) throws CRException {
+	protected void indexCR(final IndexLocation indexLocation, final CRConfigUtil config) throws CRException {
 		try {
 			reIndex();
 		} catch (IOException e) {

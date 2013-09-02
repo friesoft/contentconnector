@@ -63,7 +63,7 @@ public final class ArchiverUtil {
 	 * @throws IOException - in case we cannot read a file or generate the
 	 * archive successfully
 	 */
-	public static void generateGZippedTar(final OutputStream outputStream, final File file) throws IOException {
+	public static void generateGZippedTar(final OutputStream outputStream, final File... files) throws IOException {
 		BufferedOutputStream bOut = null;
 		GzipCompressorOutputStream gzOut = null;
 		TarArchiveOutputStream tOut = null;
@@ -71,10 +71,17 @@ public final class ArchiverUtil {
 			bOut = new BufferedOutputStream(outputStream);
 			gzOut = new GzipCompressorOutputStream(bOut);
 			tOut = new TarArchiveOutputStream(gzOut);
-			if (file.isDirectory()) {
-				addFileToTar(tOut, file, "/");
+			if (files.length == 1) {
+				File file = files[0];
+				if (file.isDirectory()) {
+					addFileToTar(tOut, file, "/");
+				} else {
+					addFileToTar(tOut, file, file.getName());
+				}
 			} else {
-				addFileToTar(tOut, file, file.getName());
+				for (File file : files) {
+					addFileToTar(tOut, file, file.getName());
+				}
 			}
 		} finally {
 			if (tOut != null) {
