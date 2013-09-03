@@ -194,6 +194,9 @@ public class IndexCompressor extends Thread {
 		}
 	}
 
+	/**
+	 * @return array of index directories
+	 */
 	private File[] getIndexDirectories() {
 		List<File> files = new ArrayList<File>(indexDirectoryStructures.size());
 		for (IndexCompressorStructure struc : indexDirectoryStructures) {
@@ -202,6 +205,9 @@ public class IndexCompressor extends Thread {
 		return files.toArray(new File[indexDirectoryStructures.size()]);
 	}
 
+	/**
+	 * @return true if every index directory is writable, false otherwise
+	 */
 	private boolean checkCanWrite() {
 		for (IndexCompressorStructure struc : indexDirectoryStructures) {
 			if (!struc.getIndexDirectory().canWrite()) {
@@ -211,6 +217,10 @@ public class IndexCompressor extends Thread {
 		return true;
 	}
 
+	/**
+	 * Check index structures for locks.
+	 * @throws LockedIndexException
+	 */
 	private void checkLock() throws LockedIndexException {
 		for (IndexCompressorStructure struc : indexDirectoryStructures) {
 			struc.getIndexLocation().checkLock();
@@ -236,6 +246,9 @@ public class IndexCompressor extends Thread {
 		writeLock.setReadOnly();
 	}
 
+	/**
+	 * Remove index lock.
+	 */
 	private void removeIndexLock() {
 		if (writeLock != null && writeLock.exists() && weWroteTheWriteLock) {
 			writeLock.delete();
