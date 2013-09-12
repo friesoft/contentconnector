@@ -55,11 +55,22 @@ public final class ArchiverUtil {
 			}
 		}
 	}
-
+	
 	/**
 	 * generate a gnu zipped tar archive from the given file/directory.
 	 * @param outputStream - output stream to save the compressed archive
 	 * @param file - file/directory to put into the archive
+	 * @throws IOException - in case we cannot read a file or generate the
+	 * archive successfully
+	 */
+	public static void generateGZippedTar(final OutputStream outputStream, final File file) throws IOException {
+		generateGZippedTar(outputStream, new File[]{file});
+	}
+
+	/**
+	 * generate a gnu zipped tar archive from the given file/directory.
+	 * @param outputStream - output stream to save the compressed archive
+	 * @param files - file/directory to put into the archive
 	 * @throws IOException - in case we cannot read a file or generate the
 	 * archive successfully
 	 */
