@@ -522,9 +522,9 @@ public class CRResolvableBean extends AccessibleBean implements Serializable, Re
 			return null;
 		} else if ("contentid".equalsIgnoreCase(attribute)) {
 			return this.getContentid();
-		} else if ("obj_type".equals(attribute) && !attrMap.containsKey("obj_type") && resolvable == null) {
+		} else if ("obj_type".equals(attribute) && (attrMap == null || !attrMap.containsKey("obj_type")) && resolvable == null) {
 			return this.getObj_type();
-		} else if ("obj_id".equals(attribute) && !attrMap.containsKey("obj_id") && resolvable == null) {
+		} else if ("obj_id".equals(attribute) && (attrMap == null || !attrMap.containsKey("obj_id")) && resolvable == null) {
 			return this.getObj_id();
 		} else if (this.attrMap != null && this.attrMap.containsKey(attribute)) {
 			return this.attrMap.get(attribute);
