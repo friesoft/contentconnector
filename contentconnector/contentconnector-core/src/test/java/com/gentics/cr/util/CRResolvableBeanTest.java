@@ -14,6 +14,8 @@ public class CRResolvableBeanTest {
 		assertEquals("Contentid not correct.", "3.4", bean.getContentid());
 		assertEquals("obj_id not correct.", "4", bean.getObj_id());
 		assertEquals("obj_type not correct.", "3", bean.getObj_type());
+		assertEquals("obj_id via default get not correct.", "4", bean.get("obj_id"));
+		assertEquals("obj_type via default get not correct.", "3", bean.get("obj_type"));
 	}
 
 	@Test

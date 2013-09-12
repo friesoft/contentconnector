@@ -525,7 +525,7 @@ public class CRResolvableBean extends AccessibleBean implements Serializable, Re
 		} else if ("obj_type".equals(attribute) && !attrMap.containsKey("obj_type") && resolvable == null) {
 			return this.getObj_type();
 		} else if ("obj_id".equals(attribute) && !attrMap.containsKey("obj_id") && resolvable == null) {
-			return this.getObj_type();
+			return this.getObj_id();
 		} else if (this.attrMap != null && this.attrMap.containsKey(attribute)) {
 			return this.attrMap.get(attribute);
 		} else if (this.resolvable != null) {
