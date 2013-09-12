@@ -17,6 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 
 import com.gentics.api.lib.exception.UnknownPropertyException;
@@ -441,14 +442,7 @@ public class CRResolvableBean extends AccessibleBean implements Serializable, Re
 	 * @return content
 	 */
 	public String getContent() {
-		Object o = this.get("content");
-		try {
-			return (String) o;
-		} catch (ClassCastException ex) {
-			// If type is not String then assume that byte[] would do the trick
-			// Not very clean
-			return new String((byte[]) o);
-		}
+		return this.getString("content");
 	}
 
 	/**
@@ -467,19 +461,26 @@ public class CRResolvableBean extends AccessibleBean implements Serializable, Re
 	public String getContent(String encoding) {
 		Object bValue = this.get("content");
 		String value = "";
-		if (bValue != null && bValue.getClass() == String.class) {
-			value = (String) bValue;
+		if(bValue == null) {
+			return null;
+		} else if (bValue instanceof String) {
+			return (String) bValue;
+		} else if (bValue instanceof CharSequence) {
+			try {
+				return IOUtils.toString(IOUtils.toInputStream((CharSequence) bValue, encoding), encoding);
+			} catch (IOException e) {
+				LOGGER.error("Error converting char sequence into input stream", e);
+			}
 		} else {
 			try {
-				value = new String(getBytes(bValue), encoding);
-
+				return new String(getBytes(bValue), encoding);
 			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
+				LOGGER.error("Error converting byte array into input stream", e);
 			} catch (IOException e) {
-				e.printStackTrace();
+				LOGGER.error("Error converting byte array into input stream", e);
 			}
 		}
-		return value;
+		return null;
 	}
 
 	/**
@@ -576,7 +577,7 @@ public class CRResolvableBean extends AccessibleBean implements Serializable, Re
 			this.attrMap.remove(attributeName);
 		}
 	}
-
+	
 	/**
 	 * Converts an Object to an array of bytes.
 	 * 
@@ -584,6 +585,9 @@ public class CRResolvableBean extends AccessibleBean implements Serializable, Re
 	 * @return byte[] - converted object
 	 */
 	private byte[] getBytes(final Object obj) throws java.io.IOException {
+		if (obj instanceof byte[]) {
+			return (byte[]) obj;
+		}
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		ObjectOutputStream oos = new ObjectOutputStream(bos);
 		oos.writeObject(obj);
