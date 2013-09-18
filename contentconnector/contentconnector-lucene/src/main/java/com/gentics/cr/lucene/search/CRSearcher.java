@@ -426,7 +426,7 @@ public class CRSearcher {
 				uniqueFieldValuesIndexReader = indexAccessor.getReader(false);
 				final TermEnum termEnum = uniqueFieldValuesIndexReader.terms(new Term(key));
 				uniqueFieldValues.put(key, new ArrayList<String>());
-				boolean hasNext = true;
+				boolean hasNext = (termEnum != null && termEnum.term() != null && termEnum.term().field() != null);
 				while (hasNext && termEnum.term().field().equals(key)) {
 					uniqueFieldValues.get(key).add(termEnum.term().text());
 					hasNext = termEnum.next();
