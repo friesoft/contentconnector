@@ -339,4 +339,13 @@ public class CRQueryParserTest extends AbstractLuceneTest {
 		Collection<ComparableDocument> matchedDocuments = wrapComparable(lucene.find(parser.parse("4,5")));
 		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(6) });
 	}
+
+	public void testDisabledMnoGoSearchQuery() throws CorruptIndexException, IOException, ParseException {
+		GenericConfiguration config = new GenericConfiguration();
+		config.set(CRQueryParser.KEY_ENABLEMNOGOSEARCHQUERY, "FALSE");
+		parser = new CRQueryParser(config, LuceneVersion.getVersion(), SEARCHED_ATTRIBUTES, STANDARD_ANALYZER);
+
+		Collection<ComparableDocument> matchedDocuments = wrapComparable(lucene.find(parser.parse("|something")));
+		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(6), documents.get(7) });
+	}
 }
