@@ -49,6 +49,11 @@ public class CRQueryParser extends QueryParser {
 	public static final String KEY_COMPREHENSIVE_SPECIAL_CHARACTER_FILTERING = "comprehensiveSpecialCharacterFiltering";
 
 	/**
+	 * Enables incoming mnoGoSearch queries. Setting is enabled by default.
+	 */
+	public static final String KEY_ENABLEMNOGOSEARCHQUERY = "enableMnoGoSearchQuery";
+
+	/**
 	 * Constant 1.
 	 */
 	private static final int ONE = 1;
@@ -95,6 +100,11 @@ public class CRQueryParser extends QueryParser {
 	private CRRequest request;
 
 	/**
+	 * Enables incoming mnoGoSearch queries. Setting is enabled by default.
+	 */
+	private boolean enableMnoGoSearchQuery = true;
+
+	/**
 	 * Log4j logger for error and debug messages.
 	 */
 	private static final Logger LOGGER = Logger.getLogger(CRQueryParser.class);
@@ -136,6 +146,7 @@ public class CRQueryParser extends QueryParser {
 		super(version, searchedAttributes[0], analyzer);
 		attributesToSearchIn = Arrays.asList(searchedAttributes);
 		setSpecialCharactersFromConfig(config);
+		enableMnoGoSearchQuery = config.getBoolean(KEY_ENABLEMNOGOSEARCHQUERY, true);
 	}
 
 	/**
@@ -151,6 +162,7 @@ public class CRQueryParser extends QueryParser {
 		this(version, searchedAttributes, analyzer);
 		this.request = crRequest;
 		setSpecialCharactersFromConfig(config);
+		enableMnoGoSearchQuery = config.getBoolean(KEY_ENABLEMNOGOSEARCHQUERY, true);
 	}
 
 	/**
@@ -374,9 +386,12 @@ public class CRQueryParser extends QueryParser {
 	 * @return query with mnoGoSearch syntax replaced for lucene
 	 */
 	protected String replaceBooleanMnoGoSearchQuery(final String mnoGoSearchQuery) {
-		String luceneQuery = mnoGoSearchQuery.replaceAll(" ?\\| ?", " OR ").replaceAll("(?<!\\\\) ?& ?", " AND ").replace('\'', '"');
-		luceneQuery = luceneQuery.replaceAll(" ~([a-zA-Z0-9üöäÜÖÄß]+)", " NOT $1");
-		return luceneQuery;
+		if (enableMnoGoSearchQuery) {
+			String luceneQuery = mnoGoSearchQuery.replaceAll(" ?\\| ?", " OR ").replaceAll("(?<!\\\\) ?& ?", " AND ").replace('\'', '"');
+			luceneQuery = luceneQuery.replaceAll(" ~([a-zA-Z0-9üöäÜÖÄß]+)", " NOT $1");
+			return luceneQuery;
+		}
+		return mnoGoSearchQuery;
 	}
 
 	protected static Logger getLogger() {
