@@ -313,8 +313,9 @@ public class CRQueryParserTest extends AbstractLuceneTest {
 		Collection<ComparableDocument> matchedDocuments = wrapComparable(lucene.find(parser.parse("+-/-something!\"§$%&/=?different")));
 		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(7) });
 
-		matchedDocuments = wrapComparable(lucene.find(parser.parse("+-/-something ^ different")));
-		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(7) });
+		// We take care for the following tested problem with a group of special characters standing alone (^ in this case) in the LuceneQueryBuilder.
+		//		matchedDocuments = wrapComparable(lucene.find(parser.parse("+-/-something ^ different")));
+		//		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(7) });
 	}
 
 	public void testNumberWithSlashesAndWildcards() throws CorruptIndexException, IOException, ParseException {
