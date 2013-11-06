@@ -70,7 +70,7 @@ public class CRQueryParser extends QueryParser {
 	/**
 	 * Word, space, underscore, colon, star characters.
 	 */
-	private static final String INV_SPECIAL_CHARACTERS = "\\pL\\p{Nd}_*: ";
+	public static final String INV_SPECIAL_CHARACTERS = "\\pL\\p{Nd}_*: ";
 
 	/**
 	 * characters that cannot be searched because they are removed (replaced by a space) by the analyzer before writing to the index.

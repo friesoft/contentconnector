@@ -100,7 +100,7 @@ public class DidyoumeanIndexExtension extends AbstractIndexExtension implements 
 	 * @param config
 	 * @param callingLocation
 	 */
-	public DidyoumeanIndexExtension(CRConfig config, IndexLocation callingLocation) {
+	public DidyoumeanIndexExtension(final CRConfig config, final IndexLocation callingLocation) {
 		super(config, callingLocation);
 		this.config = config;
 		this.callingIndexLocation = callingLocation;
@@ -162,7 +162,8 @@ public class DidyoumeanIndexExtension extends AbstractIndexExtension implements 
 	 * If enabled in the config this method adds a reIndexing Job to the queue
 	 * of the {@link IndexLocation} which fired the event
 	 */
-	public void processEvent(Event event) {
+	@Override
+	public void processEvent(final Event event) {
 		if (!subscribeToIndexFinished || !IndexingFinishedEvent.INDEXING_FINISHED_EVENT_TYPE.equals(event.getType())) {
 			return;
 		}
@@ -188,7 +189,7 @@ public class DidyoumeanIndexExtension extends AbstractIndexExtension implements 
 	@Override
 	public void stop() {
 		sourceLocation.stop();
-		if (spellchecker != null) {
+		if (spellchecker != null && !spellchecker.isClosed()) {
 			spellchecker.close();
 		} else if (didyoumeanLocation != null) {
 			didyoumeanLocation.stop();
@@ -226,7 +227,7 @@ public class DidyoumeanIndexExtension extends AbstractIndexExtension implements 
 	 * @see com.gentics.cr.util.indexing.AbstractIndexExtension#addJob(java.lang. String)
 	 */
 	@Override
-	public void addJob(String name) throws NoSuchMethodException {
+	public void addJob(final String name) throws NoSuchMethodException {
 		addJob(name, null);
 	}
 
@@ -236,7 +237,7 @@ public class DidyoumeanIndexExtension extends AbstractIndexExtension implements 
 	 * com.gentics.cr.util.indexing.IndexLocation)
 	 */
 	@Override
-	public void addJob(String name, IndexLocation indexLocation) throws NoSuchMethodException {
+	public void addJob(final String name, final IndexLocation indexLocation) throws NoSuchMethodException {
 		IndexLocation actualLocation = callingIndexLocation;
 		if (indexLocation != null) {
 			actualLocation = indexLocation;
@@ -251,11 +252,11 @@ public class DidyoumeanIndexExtension extends AbstractIndexExtension implements 
 		}
 	}
 	
-	public AbstractUpdateCheckerJob createDYMIndexJob(IndexLocation indexLocation) {
+	public AbstractUpdateCheckerJob createDYMIndexJob(final IndexLocation indexLocation) {
 		return new DidyoumeanIndexJob(this.config, indexLocation, this);
 	}
 	
-	public AbstractUpdateCheckerJob createDYMIndexDeleteJob(IndexLocation indexLocation) {
+	public AbstractUpdateCheckerJob createDYMIndexDeleteJob(final IndexLocation indexLocation) {
 		return new DidyoumeanIndexDeleteJob(this.config, indexLocation, this);
 	}
 
@@ -263,7 +264,7 @@ public class DidyoumeanIndexExtension extends AbstractIndexExtension implements 
 		return all;
 	}
 
-	public void setAll(boolean all) {
+	public void setAll(final boolean all) {
 		this.all = all;
 	}
 
@@ -271,7 +272,7 @@ public class DidyoumeanIndexExtension extends AbstractIndexExtension implements 
 		return dym_fields;
 	}
 
-	public void setDym_fields(Collection<String> dym_fields) {
+	public void setDym_fields(final Collection<String> dym_fields) {
 		this.dym_fields = dym_fields;
 	}
 
@@ -287,7 +288,7 @@ public class DidyoumeanIndexExtension extends AbstractIndexExtension implements 
 		return spellchecker;
 	}
 
-	public void setSpellchecker(CustomSpellChecker spellchecker) {
+	public void setSpellchecker(final CustomSpellChecker spellchecker) {
 		this.spellchecker = spellchecker;
 	}
 
@@ -315,7 +316,7 @@ public class DidyoumeanIndexExtension extends AbstractIndexExtension implements 
 	 * @param reader
 	 * @return
 	 */
-	public Map<String, String[]> getSuggestions(Set<Term> termlist, int count, IndexReader reader) {
+	public Map<String, String[]> getSuggestions(final Set<Term> termlist, final int count, final IndexReader reader) {
 		return getSuggestionsStringFromMap(getSuggestionTerms(termlist, count, reader));
 	}
 
@@ -326,7 +327,7 @@ public class DidyoumeanIndexExtension extends AbstractIndexExtension implements 
 	 * @param reader
 	 * @return
 	 */
-	public Map<Term, Term[]> getSuggestionTerms(Set<Term> termlist, int count, IndexReader reader) {
+	public Map<Term, Term[]> getSuggestionTerms(final Set<Term> termlist, final int count, final IndexReader reader) {
 
 		Map<Term, Term[]> result = new LinkedHashMap<Term, Term[]>();
 		Set<Term> termset = new HashSet<Term>();
@@ -367,7 +368,7 @@ public class DidyoumeanIndexExtension extends AbstractIndexExtension implements 
 	 * @param suggestions
 	 * @return
 	 */
-	public Map<String, String[]> getSuggestionsStringFromMap(Map<Term, Term[]> suggestions) {
+	public Map<String, String[]> getSuggestionsStringFromMap(final Map<Term, Term[]> suggestions) {
 		Map<String, String[]> result = new LinkedHashMap<String, String[]>();
 		for (Term key : suggestions.keySet()) {
 			Term[] values = suggestions.get(key);

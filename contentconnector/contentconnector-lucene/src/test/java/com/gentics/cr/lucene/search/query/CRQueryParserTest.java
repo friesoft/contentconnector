@@ -312,6 +312,9 @@ public class CRQueryParserTest extends AbstractLuceneTest {
 		//		Collection<ComparableDocument> matchedDocuments = wrapComparable(lucene.find(parser.parse("+-/-something!\"§$%&/()=?different"))); // () not allowed
 		Collection<ComparableDocument> matchedDocuments = wrapComparable(lucene.find(parser.parse("+-/-something!\"§$%&/=?different")));
 		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(7) });
+
+		matchedDocuments = wrapComparable(lucene.find(parser.parse("+-/-something ^ different")));
+		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(7) });
 	}
 
 	public void testNumberWithSlashesAndWildcards() throws CorruptIndexException, IOException, ParseException {

@@ -287,7 +287,7 @@ public class CustomSpellChecker implements java.io.Closeable {
 		ensureOpen();
 
 		IndexAccessor ia = this.spellIndex.getAccessor();
-		final IndexSearcher indexSearcher = (IndexSearcher) ia.getPrioritizedSearcher();
+		final IndexSearcher indexSearcher = ia.getPrioritizedSearcher();
 
 		try {
 			float min = this.minScore;
@@ -502,7 +502,7 @@ public class CustomSpellChecker implements java.io.Closeable {
 	public final boolean exist(final String word) throws IOException {
 		ensureOpen();
 		final IndexAccessor accessor = this.spellIndex.getAccessor();
-		final IndexSearcher indexSearcher = (IndexSearcher) accessor.getPrioritizedSearcher();
+		final IndexSearcher indexSearcher = accessor.getPrioritizedSearcher();
 		try {
 			return indexSearcher.docFreq(F_WORD_TERM.createTerm(word)) > 0;
 		} finally {
@@ -533,7 +533,7 @@ public class CustomSpellChecker implements java.io.Closeable {
 				LogMergePolicy logMergePolicy = (LogMergePolicy) writer.getConfig().getMergePolicy();
 				logMergePolicy.setMergeFactor(300);
 			}
-			final IndexSearcher indexSearcher = (IndexSearcher) accessor.getPrioritizedSearcher();
+			final IndexSearcher indexSearcher = accessor.getPrioritizedSearcher();
 			int obj_count = 0;
 
 			try {
@@ -704,7 +704,7 @@ public class CustomSpellChecker implements java.io.Closeable {
 	 * @return <code>true</code> if and only if the {@link SpellChecker} is
 	 *         closed, otherwise <code>false</code>.
 	 */
-	final boolean isClosed() {
+	public final boolean isClosed() {
 		return closed;
 	}
 
