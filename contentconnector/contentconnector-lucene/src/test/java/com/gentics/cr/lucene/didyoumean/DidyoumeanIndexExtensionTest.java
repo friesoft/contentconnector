@@ -76,7 +76,7 @@ public class DidyoumeanIndexExtensionTest {
 	}
 
 
-	@Test
+	@Test(timeout=10000)
 	public void testNoAlreadyClosedExceptionOnSecondClose() {
 		CRConfig config = new SimpleCRConfig();
 		GenericConfiguration subconfig = new GenericConfiguration();
