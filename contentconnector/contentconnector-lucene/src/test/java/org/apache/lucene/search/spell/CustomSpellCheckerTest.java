@@ -75,7 +75,7 @@ public class CustomSpellCheckerTest {
 		}
 	}
 
-	@Test(expected = AlreadyClosedException.class)
+	@Test(expected = AlreadyClosedException.class, timeout=10000)
 	public void testAlreadyClosedException() throws IOException {
 		CRConfig config = new SimpleCRConfig();
 		LuceneIndexLocation sspellIndex = new LuceneIndexLocationMock(config);
