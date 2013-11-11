@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -33,6 +35,8 @@ public class IndexJobQueue {
 	 * Miliseconds in a second.
 	 */
 	private static final int MILISECONDS_IN_A_SECOND = 1000;
+	
+	private final ReentrantLock LOCK = new ReentrantLock();
 
 	/**
 	 * Default interval.
@@ -218,8 +222,9 @@ public class IndexJobQueue {
 						this.pauseMonitor.wait();
 					}
 				}
-				synchronized (IndexJobQueue.this) {
-					AbstractUpdateCheckerJob j = this.queue.poll();
+				LOCK.lockInterruptibly();
+				try {
+					AbstractUpdateCheckerJob j = this.queue.poll(100, TimeUnit.MILLISECONDS);
 					if (j != null) {
 						if (jobQueueMetadata == null) {
 							jobQueueMetadata = new JobQueueMetadata();
@@ -245,6 +250,8 @@ public class IndexJobQueue {
 						}
 						LOGGER.debug("Finished Job - " + j.getIdentifyer());
 					}
+				} finally {
+					LOCK.unlock();
 				}
 				// Wait for next cycle
 				if (!Thread.currentThread().isInterrupted()) {
@@ -271,35 +278,42 @@ public class IndexJobQueue {
 		}
 
 		//END CURRENT JOB
-		synchronized (IndexJobQueue.this) {
-			//WAIT FOR CURRENT JOB TO END
-			if (currentJob != null) {
-				try {
-					if (currentJob.isAlive()) {
-						//INTERRUPT IF A NEW JOB HAS BEEN CREATED
-						if (!currentJob.isInterrupted()) {
-							currentJob.interrupt();
-						}
-						currentJob.join();
-					}
-
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-			//TODO Clear queue and stop each queued job
-			this.queue.clear();
-			//END WORKER THREAD
-			if (indexJobQueueWorkerDaemon != null) {
-				if (indexJobQueueWorkerDaemon.isAlive()) {
-					indexJobQueueWorkerDaemon.interrupt();
+		try {
+			LOCK.lockInterruptibly();
+			try {
+				//WAIT FOR CURRENT JOB TO END
+				if (currentJob != null) {
 					try {
-						indexJobQueueWorkerDaemon.join();
+						if (currentJob.isAlive()) {
+							//INTERRUPT IF A NEW JOB HAS BEEN CREATED
+							if (!currentJob.isInterrupted()) {
+								currentJob.interrupt();
+							}
+							currentJob.join();
+						}
+	
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
 				}
+				//TODO Clear queue and stop each queued job
+				this.queue.clear();
+				//END WORKER THREAD
+				if (indexJobQueueWorkerDaemon != null) {
+					if (indexJobQueueWorkerDaemon.isAlive()) {
+						indexJobQueueWorkerDaemon.interrupt();
+						try {
+							indexJobQueueWorkerDaemon.join();
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+			} finally {
+				LOCK.unlock();
 			}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 	}
 
