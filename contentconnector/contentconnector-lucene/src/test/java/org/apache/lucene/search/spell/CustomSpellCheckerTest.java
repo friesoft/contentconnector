@@ -5,12 +5,14 @@ import java.util.Date;
 
 import org.apache.lucene.store.AlreadyClosedException;
 import org.apache.lucene.store.Directory;
+import org.junit.After;
 import org.junit.Test;
 
 import com.gentics.cr.CRConfig;
 import com.gentics.cr.configuration.SimpleCRConfig;
 import com.gentics.cr.lucene.facets.taxonomy.taxonomyaccessor.TaxonomyAccessor;
 import com.gentics.cr.lucene.indexaccessor.IndexAccessor;
+import com.gentics.cr.lucene.indexaccessor.IndexAccessorFactory;
 import com.gentics.cr.lucene.indexer.index.LuceneIndexLocation;
 
 public class CustomSpellCheckerTest {
@@ -84,6 +86,11 @@ public class CustomSpellCheckerTest {
 
 		csc.close();
 		csc.close();
+	}
+	
+	@After
+	public void clean() {
+		IndexAccessorFactory.getInstance().reopen();
 	}
 
 }
