@@ -1,5 +1,7 @@
 package com.gentics.cr.lucene.search.query;
 
+import static org.junit.Assert.*;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,6 +15,8 @@ import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.search.Query;
+import org.junit.Before;
+import org.junit.Test;
 
 import com.gentics.cr.CRRequest;
 import com.gentics.cr.configuration.GenericConfiguration;
@@ -33,15 +37,9 @@ public class CRRecencyBoostingQueryParserTest extends AbstractLuceneTest {
 	private ArrayList<ComparableDocument> documents;
 	private long today = System.currentTimeMillis() / 1000;
 	
-	public CRRecencyBoostingQueryParserTest(String name) throws CorruptIndexException, IOException {
-		super(name);
-	}
-
 	
-	@Override
-	protected void setUp() throws Exception {
-		super.setUp();
-
+	@Before
+	public void setup() throws Exception {
 		GenericConfiguration config = new GenericConfiguration();
 		Properties p = new Properties();
 		p.setProperty("MULTIPLICATORBOOST", "4.0");
@@ -118,6 +116,7 @@ public class CRRecencyBoostingQueryParserTest extends AbstractLuceneTest {
 		String highlighted = advancedHighlighter.highlight(rQuery, reader, documentId, "content");
 	 }
 	
+	@Test
 	public void testBoostingWithCRRecencyBoostingQueryParser() throws ParseException, CorruptIndexException, IOException {
 		Query orginalQuery = parser.parse("word1");
 

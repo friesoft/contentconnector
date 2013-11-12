@@ -1,5 +1,7 @@
 package com.gentics.cr.lucene.indexer.index;
 
+import static org.junit.Assert.*;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -8,6 +10,7 @@ import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.LockFactory;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.store.SimpleFSLockFactory;
+import org.junit.Test;
 
 import com.gentics.cr.CRConfig;
 import com.gentics.cr.CRConfigUtil;
@@ -18,11 +21,7 @@ public class LuceneDirectoryFactoryTest extends AbstractLuceneTest {
 	
 	
 
-	public LuceneDirectoryFactoryTest(String name) {
-		super(name);
-		// TODO Auto-generated constructor stub
-	}
-
+	@Test
 	public void testDirectoryCaching() {
 
 		Directory d1 = LuceneDirectoryFactory.getDirectory("RAM_1");

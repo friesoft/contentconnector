@@ -11,6 +11,8 @@ import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.search.Query;
+import org.junit.Before;
+import org.junit.Test;
 
 import com.gentics.cr.CRRequest;
 import com.gentics.cr.lucene.AbstractLuceneTest;
@@ -20,10 +22,6 @@ import com.gentics.cr.lucene.search.query.mocks.SimpleLucene;
 
 public class BooleanQueryRewriterTest extends AbstractLuceneTest {
 
-	public BooleanQueryRewriterTest(String name) {
-		super(name);
-	}
-
 	private static final StandardAnalyzer STANDARD_ANALYZER = new StandardAnalyzer(LuceneVersion.getVersion());
 	private static final String[] SEARCHED_ATTRIBUTES = new String[] { SimpleLucene.CONTENT_ATTRIBUTE, "binarycontent" };
 	private CRQueryParser parser;
@@ -31,9 +29,8 @@ public class BooleanQueryRewriterTest extends AbstractLuceneTest {
 	private SimpleLucene lucene;
 	private ArrayList<ComparableDocument> documents;
 
-	@Override
-	protected void setUp() throws Exception {
-		super.setUp();
+	@Before
+	public void setup() throws Exception {
 		parser = new CRQueryParser(LuceneVersion.getVersion(), SEARCHED_ATTRIBUTES, STANDARD_ANALYZER);
 		crRequest = new CRRequest();
 		lucene = new SimpleLucene();
@@ -77,6 +74,7 @@ public class BooleanQueryRewriterTest extends AbstractLuceneTest {
 
 	}
 
+	@Test
 	public void testReplaceTerm() throws ParseException, CorruptIndexException, IOException {
 		Query orginalQuery = parser.parse("word1 | word2");
 		Query newQuery = BooleanQueryRewriter.replaceTerm(orginalQuery, new Term(SimpleLucene.CONTENT_ATTRIBUTE,
@@ -86,6 +84,7 @@ public class BooleanQueryRewriterTest extends AbstractLuceneTest {
 		containsAll(matchedDocuments, new ComparableDocument[] { documents.get(1), documents.get(2) });
 	}
 
+	@Test
 	public void testReplaceTerms() throws ParseException, CorruptIndexException, IOException {
 		Query orginalQuery = parser.parse("word1 & word2");
 		HashMap<Term, Term> replacements = new HashMap<Term, Term>();

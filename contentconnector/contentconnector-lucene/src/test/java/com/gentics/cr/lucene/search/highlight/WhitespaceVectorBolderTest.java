@@ -1,5 +1,7 @@
 package com.gentics.cr.lucene.search.highlight;
 
+import static org.junit.Assert.*;
+
 import java.io.IOException;
 
 import org.apache.lucene.analysis.CharArraySet;
@@ -13,6 +15,8 @@ import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.MultiTermQuery;
 import org.apache.lucene.search.Query;
+import org.junit.Before;
+import org.junit.Test;
 
 import com.gentics.cr.configuration.GenericConfiguration;
 import com.gentics.cr.lucene.AbstractLuceneTest;
@@ -21,20 +25,15 @@ import com.gentics.cr.lucene.search.query.mocks.SimpleLucene;
 
 public class WhitespaceVectorBolderTest extends AbstractLuceneTest {
 
-	public WhitespaceVectorBolderTest(String name) {
-		super(name);
-		// TODO Auto-generated constructor stub
-	}
-
 	SimpleLucene lucene;
 
 	GenericConfiguration config;
 
 	QueryParser parser;
 
-	protected void setUp() throws Exception {
-		super.setUp();
-
+	
+	@Before
+	public void setup() throws Exception {
 		lucene = new SimpleLucene();
 		lucene.add(SimpleLucene.CONTENT_ATTRIBUTE + ":this word9 the word1 tat", "node_id:1");
 
@@ -49,6 +48,7 @@ public class WhitespaceVectorBolderTest extends AbstractLuceneTest {
 				LuceneVersion.getVersion(), CharArraySet.EMPTY_SET));
 	}
 
+	@Test
 	public void testHighlighting() throws ParseException, CorruptIndexException, IOException {
 		AdvancedContentHighlighter advancedHighlighter = new WhitespaceVectorBolder(config);
 		IndexReader reader = lucene.getReader();

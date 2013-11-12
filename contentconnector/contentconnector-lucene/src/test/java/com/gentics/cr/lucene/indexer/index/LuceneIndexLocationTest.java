@@ -1,5 +1,10 @@
 package com.gentics.cr.lucene.indexer.index;
 
+import static org.junit.Assert.*;
+
+import org.junit.Before;
+import org.junit.Test;
+
 import com.gentics.cr.CRConfig;
 import com.gentics.cr.CRConfigUtil;
 import com.gentics.cr.configuration.GenericConfiguration;
@@ -8,19 +13,14 @@ import com.gentics.cr.lucene.indexaccessor.IndexAccessor;
 
 public class LuceneIndexLocationTest extends AbstractLuceneTest {
 
-	public LuceneIndexLocationTest(String name) {
-		super(name);
-		// TODO Auto-generated constructor stub
-	}
-
 	CRConfig singleConfig1;
 	CRConfig singleConfig2;
 
 	CRConfig singleConfig3;
 
-	protected void setUp() throws Exception {
-		super.setUp();
 
+	@Before
+	public void setup() throws Exception {
 		GenericConfiguration sc = new GenericConfiguration();
 		sc.set("indexLocations.1.path", "RAM_1");
 		sc.set("indexLocationClass", "com.gentics.cr.lucene.indexer.index.LuceneSingleIndexLocation");
@@ -40,6 +40,7 @@ public class LuceneIndexLocationTest extends AbstractLuceneTest {
 		singleConfig3 = new CRConfigUtil(sc3, "sc3");
 	}
 
+	@Test
 	public void testLuceneSingleIndexLocation() {
 		LuceneIndexLocation singleLoc1 = LuceneIndexLocation.getIndexLocation(singleConfig1);
 		IndexAccessor ia1 = singleLoc1.getAccessor();

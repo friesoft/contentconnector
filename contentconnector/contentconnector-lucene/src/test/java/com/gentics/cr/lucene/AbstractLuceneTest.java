@@ -1,19 +1,21 @@
 package com.gentics.cr.lucene;
 
+
+import static org.junit.Assert.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Vector;
 
-import junit.framework.TestCase;
-
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.junit.Before;
+import org.junit.Test;
 
 import com.gentics.cr.lucene.search.query.mocks.ComparableDocument;
 import com.gentics.cr.lucene.search.query.mocks.SimpleLucene;
 
-public abstract class AbstractLuceneTest extends TestCase {
+public abstract class AbstractLuceneTest {
 
 	private Collection<ComparableDocument> documents;
 	private Document document1;
@@ -24,13 +26,8 @@ public abstract class AbstractLuceneTest extends TestCase {
 	private ComparableDocument cd2;
 	private ComparableDocument cd3;
 
-	public AbstractLuceneTest(final String name) {
-		super(name);
-	}
-
-	@Override
-	protected void setUp() throws Exception {
-		super.setUp();
+	@Before
+	public void setupAbstractTest() throws Exception {
 		document1 = new Document();
 		document1.add(new Field(SimpleLucene.CONTENT_ATTRIBUTE, "document1", Field.Store.YES, Field.Index.ANALYZED));
 		cd1 = new ComparableDocument(document1);
@@ -44,9 +41,11 @@ public abstract class AbstractLuceneTest extends TestCase {
 		documents = new ArrayList<ComparableDocument>();
 		documents.add(cd1);
 		documents.add(cd2);
+		documents.add(cd3);
 
 	}
 
+	@Test
 	public void selfTest() {
 		containsAll(documents, new ComparableDocument[] { new ComparableDocument(document1),
 				new ComparableDocument(document2), new ComparableDocument(document3) });
