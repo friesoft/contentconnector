@@ -40,7 +40,7 @@ public class LuceneIndexLocationTest extends AbstractLuceneTest {
 		singleConfig3 = new CRConfigUtil(sc3, "sc3");
 	}
 
-	@Test
+	@Test(timeout=10000)
 	public void testLuceneSingleIndexLocation() {
 		LuceneIndexLocation singleLoc1 = LuceneIndexLocation.getIndexLocation(singleConfig1);
 		IndexAccessor ia1 = singleLoc1.getAccessor();

@@ -4,8 +4,16 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import junit.framework.Assert;
+import static junit.framework.Assert.*;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -34,27 +42,36 @@ public class LuceneRequestProcessorTest {
 	private static LuceneIndexLocation location=null;
 	
 	@BeforeClass
-	public static void setUp() throws CRException, URISyntaxException, IOException {
-		EnvironmentConfiguration.loadEnvironmentProperties();
-		config = new CRConfigStreamLoader("search", LuceneRequestProcessorTest.class.getResourceAsStream("search.properties"));
-		rp = config.getNewRequestProcessorInstance(1);
-		CRConfigUtil rpConfig = config.getRequestProcessorConfig(1);
-		location = LuceneIndexLocation.getIndexLocation(rpConfig);
-		IndexAccessor accessor = location.getAccessor();
-		
-		addDoc(accessor, "content:content1", "category:cars", "contentid:10007.1");
-		addDoc(accessor, "content:audi", "category:cars", "contentid:10007.2");
-		addDoc(accessor, "content:saab", "category:cars", "contentid:10007.3");
-		addDoc(accessor, "content:volvo", "category:cars", "contentid:10007.4");
-		addDoc(accessor, "content:ford", "category:cars", "contentid:10007.5");
-		addDoc(accessor, "content:pagani", "category:cars", "contentid:10007.6");
-		addDoc(accessor, "content:potatoe", "category:plants", "contentid:10007.7");
-		addDoc(accessor, "content:flower", "category:plants", "contentid:10007.8");
-		addDoc(accessor, "content:tree", "category:plants", "contentid:10007.9");
-		
-		DidyoumeanIndexExtension dymProvider = ((LuceneRequestProcessor) rp).getCRSearcher().getDYMProvider();
-		AbstractUpdateCheckerJob dymIndexJob = dymProvider.createDYMIndexJob(location);
-		dymIndexJob.run();
+	public static void setUp() throws CRException, URISyntaxException, IOException, InterruptedException, ExecutionException, TimeoutException {
+		ExecutorService exec = Executors.newSingleThreadExecutor();
+		final Callable<Boolean> task = new Callable<Boolean>() {
+			@Override
+			public Boolean call() throws Exception {
+				EnvironmentConfiguration.loadEnvironmentProperties();
+				config = new CRConfigStreamLoader("search", LuceneRequestProcessorTest.class.getResourceAsStream("search.properties"));
+				rp = config.getNewRequestProcessorInstance(1);
+				CRConfigUtil rpConfig = config.getRequestProcessorConfig(1);
+				location = LuceneIndexLocation.getIndexLocation(rpConfig);
+				IndexAccessor accessor = location.getAccessor();
+				
+				addDoc(accessor, "content:content1", "category:cars", "contentid:10007.1");
+				addDoc(accessor, "content:audi", "category:cars", "contentid:10007.2");
+				addDoc(accessor, "content:saab", "category:cars", "contentid:10007.3");
+				addDoc(accessor, "content:volvo", "category:cars", "contentid:10007.4");
+				addDoc(accessor, "content:ford", "category:cars", "contentid:10007.5");
+				addDoc(accessor, "content:pagani", "category:cars", "contentid:10007.6");
+				addDoc(accessor, "content:potatoe", "category:plants", "contentid:10007.7");
+				addDoc(accessor, "content:flower", "category:plants", "contentid:10007.8");
+				addDoc(accessor, "content:tree", "category:plants", "contentid:10007.9");
+				
+				DidyoumeanIndexExtension dymProvider = ((LuceneRequestProcessor) rp).getCRSearcher().getDYMProvider();
+				AbstractUpdateCheckerJob dymIndexJob = dymProvider.createDYMIndexJob(location);
+				dymIndexJob.run();
+				return true;
+			}
+		};
+		final Future<Boolean> future = exec.submit(task);
+		assertTrue(future.get(10000, TimeUnit.MILLISECONDS));
 	}
 	
 	@Test
