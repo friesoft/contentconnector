@@ -1,9 +1,18 @@
 package com.gentics.cr.lucene.search;
 
+import static junit.framework.Assert.assertTrue;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import junit.framework.Assert;
 
@@ -37,31 +46,40 @@ public class LuceneRequestProcessorMultiIndexTest {
 	private static LuceneIndexLocation location=null;
 	
 	@BeforeClass
-	public static void setUp() throws CRException, URISyntaxException, IOException {
-		EnvironmentConfiguration.loadEnvironmentProperties();
-		config = new CRConfigStreamLoader("search", LuceneRequestProcessorMultiIndexTest.class.getResourceAsStream("multisearch.properties"));
-		rp = config.getNewRequestProcessorInstance(1);
-		CRConfigUtil rpConfig = config.getRequestProcessorConfig(1);
-		location = LuceneIndexLocation.getIndexLocation(rpConfig);
-		DefaultMultiIndexAccessor multiAccessor = (DefaultMultiIndexAccessor) location.getAccessor();
-		
-		Directory[] dirs = multiAccessor.getDirectories();
-		IndexAccessor accessor1 = IndexAccessorFactory.getInstance().getAccessor(dirs[0]);
-		IndexAccessor accessor2 = IndexAccessorFactory.getInstance().getAccessor(dirs[1]);
-		
-		addDoc(accessor1, "content:content1", "category:cars", "contentid:10007.1");
-		addDoc(accessor2, "content:audi", "category:cars", "contentid:10007.2");
-		addDoc(accessor1, "content:saab", "category:cars", "contentid:10007.3");
-		addDoc(accessor2, "content:volvo", "category:cars", "contentid:10007.4");
-		addDoc(accessor1, "content:ford", "category:cars", "contentid:10007.5");
-		addDoc(accessor2, "content:pagani", "category:cars", "contentid:10007.6");
-		addDoc(accessor1, "content:potatoe", "category:plants", "contentid:10007.7");
-		addDoc(accessor2, "content:flower", "category:plants", "contentid:10007.8");
-		addDoc(accessor1, "content:tree", "category:plants", "contentid:10007.9");
-		
-		DidyoumeanIndexExtension dymProvider = ((LuceneRequestProcessor) rp).getCRSearcher().getDYMProvider();
-		AbstractUpdateCheckerJob dymIndexJob = dymProvider.createDYMIndexJob(location);
-		dymIndexJob.run();
+	public static void setUp() throws CRException, URISyntaxException, IOException, InterruptedException, ExecutionException, TimeoutException {
+		ExecutorService exec = Executors.newSingleThreadExecutor();
+		final Callable<Boolean> task = new Callable<Boolean>() {
+			@Override
+			public Boolean call() throws Exception {
+				EnvironmentConfiguration.loadEnvironmentProperties();
+				config = new CRConfigStreamLoader("search", LuceneRequestProcessorMultiIndexTest.class.getResourceAsStream("multisearch.properties"));
+				rp = config.getNewRequestProcessorInstance(1);
+				CRConfigUtil rpConfig = config.getRequestProcessorConfig(1);
+				location = LuceneIndexLocation.getIndexLocation(rpConfig);
+				DefaultMultiIndexAccessor multiAccessor = (DefaultMultiIndexAccessor) location.getAccessor();
+				
+				Directory[] dirs = multiAccessor.getDirectories();
+				IndexAccessor accessor1 = IndexAccessorFactory.getInstance().getAccessor(dirs[0]);
+				IndexAccessor accessor2 = IndexAccessorFactory.getInstance().getAccessor(dirs[1]);
+				
+				addDoc(accessor1, "content:content1", "category:cars", "contentid:10007.1");
+				addDoc(accessor2, "content:audi", "category:cars", "contentid:10007.2");
+				addDoc(accessor1, "content:saab", "category:cars", "contentid:10007.3");
+				addDoc(accessor2, "content:volvo", "category:cars", "contentid:10007.4");
+				addDoc(accessor1, "content:ford", "category:cars", "contentid:10007.5");
+				addDoc(accessor2, "content:pagani", "category:cars", "contentid:10007.6");
+				addDoc(accessor1, "content:potatoe", "category:plants", "contentid:10007.7");
+				addDoc(accessor2, "content:flower", "category:plants", "contentid:10007.8");
+				addDoc(accessor1, "content:tree", "category:plants", "contentid:10007.9");
+				
+				DidyoumeanIndexExtension dymProvider = ((LuceneRequestProcessor) rp).getCRSearcher().getDYMProvider();
+				AbstractUpdateCheckerJob dymIndexJob = dymProvider.createDYMIndexJob(location);
+				dymIndexJob.run();
+				return true;
+			}
+		};
+		final Future<Boolean> future = exec.submit(task);
+		assertTrue(future.get(10000, TimeUnit.MILLISECONDS));
 	}
 	
 	@Test
