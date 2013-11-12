@@ -43,13 +43,11 @@ public class DefaultIndexAccessorTest {
 	public void setUp() throws IllegalArgumentException, SecurityException, InstantiationException, IllegalAccessException,
 			InvocationTargetException, NoSuchMethodException, ClassNotFoundException {
 		factory = IndexAccessorFactory.getInstance();
-		//reopen the factory because it could be closed by the garbage collector in the meantime
-		factory.reopen();
 		analyzer = (Analyzer) Class.forName("org.apache.lucene.analysis.WhitespaceAnalyzer").getConstructor().newInstance();
 		query = new BooleanQuery();
 	}
 
-	@Test
+	@Test(timeout=10000)
 	public void createAccessor() throws IOException {
 		factory.createAccessor(ramdir, analyzer);
 
@@ -57,7 +55,7 @@ public class DefaultIndexAccessorTest {
 		assertNotNull(accessor);
 	}
 
-	@Test
+	@Test(timeout=10000)
 	public void createAccessorWithQuery() throws IOException {
 		factory.createAccessor(ramdir, analyzer, query);
 
@@ -65,7 +63,7 @@ public class DefaultIndexAccessorTest {
 		assertNotNull(accessor);
 	}
 
-	@Test
+	@Test(timeout=10000)
 	public void testGetReaderWithClose() throws IOException {
 		factory.createAccessor(ramdir, analyzer);
 
@@ -82,7 +80,7 @@ public class DefaultIndexAccessorTest {
 		assertEquals(0, accessor.writingReadersUseCount());
 	}
 
-	@Test
+	@Test(timeout=10000)
 	public void testGetWriterWithClose() throws IOException {
 		factory.createAccessor(ramdir, analyzer);
 
@@ -99,7 +97,7 @@ public class DefaultIndexAccessorTest {
 		assertEquals(0, accessor.writerUseCount());
 	}
 
-	@Test
+	@Test(timeout=10000)
 	public void testGetSearcherWithIndexReader() throws IOException {
 		factory.createAccessor(ramdir, analyzer);
 
@@ -112,7 +110,7 @@ public class DefaultIndexAccessorTest {
 		accessor.release(searcher);
 	}
 
-	@Test
+	@Test(timeout=10000)
 	public void testGetSearcher() throws IOException {
 		factory.createAccessor(ramdir, analyzer);
 
@@ -126,7 +124,7 @@ public class DefaultIndexAccessorTest {
 		accessor.release(searcher);
 	}
 
-	@Test
+	@Test(timeout=10000)
 	public void testGetCachedSearcher() throws IOException {
 		factory.createAccessor(ramdir, analyzer);
 
@@ -144,7 +142,8 @@ public class DefaultIndexAccessorTest {
 		accessor.release(searcher);
 		accessor.release(searcher2);
 	}
-	@Test
+	
+	@Test(timeout=10000)
 	public void testReopen() throws IOException, URISyntaxException {
 		File reopenIndexLocation = testFolder.newFolder("reopenIndexLocation");
 		File originalIndex = new File(this.getClass().getResource("orignalIndex").toURI());
@@ -188,7 +187,7 @@ public class DefaultIndexAccessorTest {
 	 *
 	 * @throws Exception when test fails
 	 */
-	@Test
+	@Test(timeout=10000)
 	public void testParallelAccess() throws Exception {
 		File reopenIndexLocation = testFolder.newFolder("reopenIndexLocation");
 		File originalIndex = new File(this.getClass().getResource("orignalIndex").toURI());
