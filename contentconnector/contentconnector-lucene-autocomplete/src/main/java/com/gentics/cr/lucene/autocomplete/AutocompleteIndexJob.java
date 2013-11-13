@@ -10,6 +10,8 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.LogMergePolicy;
+import org.apache.lucene.index.MergePolicy;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.spell.LuceneDictionary;
 import org.apache.lucene.util.BytesRef;
@@ -77,8 +79,11 @@ public class AutocompleteIndexJob extends AbstractUpdateCheckerJob implements Au
 		IndexWriter writer = aia.getWriter();
 
 		try {
-			writer.setMergeFactor(300);
-			writer.setMaxBufferedDocs(150);
+			MergePolicy mergePolicy = writer.getConfig().getMergePolicy();
+			if(mergePolicy instanceof LogMergePolicy) {
+				((LogMergePolicy) mergePolicy).setMergeFactor(300);
+			}
+			writer.getConfig().setMaxBufferedDocs(150);
 			// go through every word, storing the original word (incl. n-grams)
 			// and the number of times it occurs
 			// CREATE WORD LIST FROM SOURCE INDEX
