@@ -22,11 +22,6 @@ import com.gentics.cr.util.CRUtil;
 public final class EnvironmentConfiguration {
 
 	/**
-	 * String Builder for generting the log message when the nodelog.properties file is not found.
-	 */
-	private static final StringBuilder MISSING_NODELOG_PROPERTIES = new StringBuilder("Could not find nodelog.properties at: ");
-
-	/**
 	 * Path were the configuration files are found.
 	 */
 	private static String configurationPath = "${" + CRUtil.PORTALNODE_CONFPATH + "}";
@@ -117,7 +112,7 @@ public final class EnvironmentConfiguration {
 	public static void loadLoggerProperties() {
 		loggerInitFailed = false;
 		String confpath = CRUtil.resolveSystemProperties(loggerFilePath);
-		StringBuilder errorMessage = MISSING_NODELOG_PROPERTIES.append(confpath).append(" (").append(loggerFilePath).append(')');
+		StringBuilder errorMessage = new StringBuilder("Could not find nodelog.properties at: ").append(confpath).append(" (").append(loggerFilePath).append(')');
 		try {
 			InputStream is = new FileInputStream(confpath);
 			loadLoggerProperties(is);
