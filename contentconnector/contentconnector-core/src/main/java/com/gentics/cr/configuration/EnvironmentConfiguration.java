@@ -24,7 +24,14 @@ public final class EnvironmentConfiguration {
 	/**
 	 * Path were the configuration files are found.
 	 */
-	private static String configurationPath = "${" + CRUtil.PORTALNODE_CONFPATH + "}";
+	private static String configurationPath = getDefaultConfigurationPath();
+
+	/**
+	 * @return the default value for the {@link #configurationPath}.
+	 */
+	public static String getDefaultConfigurationPath() {
+		return "${" + CRUtil.PORTALNODE_CONFPATH + "}";
+	}
 
 	/**
 	 * Path were the configuration files are found.
@@ -36,7 +43,14 @@ public final class EnvironmentConfiguration {
 	/**
 	 * Path to the default log4j property file.
 	 */
-	private static String loggerFilePath = configurationPath + "/nodelog.properties";
+	private static String loggerFilePath = getDefaultLoggerFilePath();
+
+	/**
+	 * @return the default value for {@link #loggerFilePath}.
+	 */
+	public static String getDefaultLoggerFilePath() {
+		return getDefaultConfigurationPath() + "/nodelog.properties";
+	}
 	
 	/**
 	 * Path to the fallback log4j property file.
@@ -46,7 +60,14 @@ public final class EnvironmentConfiguration {
 	/**
 	 * Path to the jcs configuration file.
 	 */
-	private static String cacheFilePath = configurationPath + "/cache.ccf";
+	private static String cacheFilePath = getDefaultCacheFilePath();
+
+	/**
+	 * @return the default value for {@link #cacheFilePath}.
+	 */
+	public static String getDefaultCacheFilePath() {
+		return getDefaultConfigurationPath() + "/cache.ccf";
+	}
 	
 	/**
 	 * Path to the fallback jcs configuration file.
@@ -294,8 +315,8 @@ public final class EnvironmentConfiguration {
 	public static void setConfigPath(final String configLocation) {
 		configurationPath = configLocation;
 		System.setProperty(CRUtil.PORTALNODE_CONFPATH, configLocation);
-		loggerFilePath = configurationPath + "/nodelog.properties";
-		cacheFilePath = configurationPath + "/cache.ccf";
+		loggerFilePath = getDefaultLoggerFilePath();
+		cacheFilePath = getDefaultCacheFilePath();
 	}
 
 	/**

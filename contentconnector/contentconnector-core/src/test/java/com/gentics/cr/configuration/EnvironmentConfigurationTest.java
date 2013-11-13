@@ -12,6 +12,7 @@ import org.apache.jcs.access.exception.CacheException;
 import org.apache.jcs.engine.control.CompositeCacheManager;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.gentics.cr.util.CRUtil;
@@ -19,6 +20,13 @@ import com.gentics.cr.util.CRUtil;
 public class EnvironmentConfigurationTest {
 
 	private String confPath;
+	
+	@BeforeClass
+	public static void resetEnvironmentConfiguration() {
+		EnvironmentConfiguration.setConfigPath(EnvironmentConfiguration.getDefaultConfigurationPath());
+		EnvironmentConfiguration.setCacheFilePath(EnvironmentConfiguration.getDefaultCacheFilePath());
+		EnvironmentConfiguration.setLoggerConfigPath(EnvironmentConfiguration.getDefaultLoggerFilePath());
+	}
 
 	@Before
 	public void setUp() throws Exception {
