@@ -123,7 +123,7 @@ public class Autocompleter implements IEventReceiver, AutocompleteConfigurationK
 	 * requests
 	 */
 	@Deprecated
-	public void processEvent(Event event) {
+	public void processEvent(Event<?> event) {
 		if (IndexingFinishedEvent.INDEXING_FINISHED_EVENT_TYPE.equals(event.getType())) {
 			IndexLocation il = (IndexLocation) event.getData();
 			if (!reindexStrategy.skipReIndex(il)) {

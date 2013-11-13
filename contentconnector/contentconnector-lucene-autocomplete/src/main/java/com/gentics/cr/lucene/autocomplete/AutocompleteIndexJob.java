@@ -2,7 +2,6 @@ package com.gentics.cr.lucene.autocomplete;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.log4j.Logger;

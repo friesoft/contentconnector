@@ -98,7 +98,7 @@ public class AutocompleteIndexExtension extends AbstractIndexExtension implement
 	 * If enabled in the config this method adds a reIndexing Job to the queue
 	 * of the {@link IndexLocation} which fired the event
 	 */
-	public void processEvent(Event event) {
+	public void processEvent(Event<?> event) {
 		if (!subscribeToIndexFinished || !IndexingFinishedEvent.INDEXING_FINISHED_EVENT_TYPE.equals(event.getType())) {
 			return;
 		}
