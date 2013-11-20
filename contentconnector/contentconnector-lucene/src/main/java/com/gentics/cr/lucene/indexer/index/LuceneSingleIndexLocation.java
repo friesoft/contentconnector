@@ -155,14 +155,6 @@ public class LuceneSingleIndexLocation extends LuceneIndexLocation implements Ta
 	}
 
 	/**
-	 * Returns the path of the index location.
-     * @return path of the index location
-     */
-	public final String getIndexLocation() {
-		return this.indexLocation;
-	}
-
-	/**
 	 * Creates the reopen file to make portlet reload the index.
 	 */
 	@Override

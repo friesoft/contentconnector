@@ -35,14 +35,22 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.LogMergePolicy;
+import org.apache.lucene.index.MergePolicy;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Similarity;
 import org.apache.lucene.store.Directory;
+import org.apache.lucene.util.Version;
+
+import com.gentics.cr.CRConfig;
 
 /**
  * Provides a default implementation for {@link IndexAccessor}.
  */
 class DefaultIndexAccessor implements IndexAccessor {
+
+	public static final String CONFIG_WRITE_LOCK_TIMEOUT_KEY = "writeLockTimeout";
 
 	/**
 	 * Creates Threads starting with a certain name
@@ -127,7 +135,7 @@ class DefaultIndexAccessor implements IndexAccessor {
 
 	protected int writerUseCount = 0;
 
-	protected int numSearchersForRetirment = 0;
+	protected int numSearchersForRetirement = 0;
 
 	protected int writingReaderUseCount = 0;
 
@@ -137,6 +145,8 @@ class DefaultIndexAccessor implements IndexAccessor {
 	 * @see #reopen()
 	 */
 	private boolean closeAllReleasedSearchers = true;
+	
+	private CRConfig config;
 
 	/**
 	 * Creates a new instance with the given {@link Directory} and
@@ -147,9 +157,10 @@ class DefaultIndexAccessor implements IndexAccessor {
 	 * @param indexAnalyzer the analyzer to associate with the
 	 * {@link IndexAccessor}.
 	 */
-	public DefaultIndexAccessor(final Directory dir, final Analyzer indexAnalyzer) {
+	public DefaultIndexAccessor(final Directory dir, final Analyzer indexAnalyzer, final CRConfig config) {
 		directory = dir;
 		analyzer = indexAnalyzer;
+		this.config = config;
 		cachedSearchers = new HashMap<Similarity, IndexSearcher>();
 	}
 
@@ -382,7 +393,7 @@ class DefaultIndexAccessor implements IndexAccessor {
 	 * (non-Javadoc)
 	 * @see com.mhs.indexaccessor.IndexAccessor#getWriter(boolean, boolean)
 	 */
-	private synchronized IndexWriter getWriter(boolean autoCommit) throws IOException {
+	private synchronized IndexWriter getWriter(final boolean autoCommit) throws IOException {
 
 		checkClosed();
 		if (LOGGER.isDebugEnabled() && writingReaderUseCount > 0) {
@@ -402,14 +413,25 @@ class DefaultIndexAccessor implements IndexAccessor {
 		} else {
 			LOGGER.debug("opening new writer and caching it:" + Thread.currentThread().getId());
 
-			cachedWriter = new IndexWriter(directory, analyzer, IndexWriter.MaxFieldLength.UNLIMITED);
+			IndexWriterConfig writerConfig = new IndexWriterConfig(Version.LUCENE_35, analyzer);
+
+			// set custom config
+			if (config != null) {
+				writerConfig.setWriteLockTimeout(config.getInteger(CONFIG_WRITE_LOCK_TIMEOUT_KEY, 1000));
+				MergePolicy merge = writerConfig.getMergePolicy();
+				if (merge instanceof LogMergePolicy) {
+					((LogMergePolicy) merge).setMergeFactor(300);
+				}
+			}
+
+			cachedWriter = new IndexWriter(directory, writerConfig);
+
 			writerUseCount = 1;
 		}
 
 		notifyAll();
 		return cachedWriter;
 	}
-
 	/**
 	 * Return the reader that was opened for read-write operations, or a new one
 	 * if it hasn't been opened already.
